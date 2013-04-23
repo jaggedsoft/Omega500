@@ -14,10 +14,7 @@
 
 		screen: new Ω.Screen(),
 		lastScreen: null,
-
 		dialog: null,
-
-		time: 0,
 
 		init: function (w, h) {
 
@@ -57,7 +54,12 @@
 
 		tick: function (d) {
 
-			this.screen.tick(d);
+			if (this.dialog) {
+				this.dialog.tick(d);
+			} else {
+				this.screen.tick(d);
+				Ω.timers.tick(d);
+			}
 			Ω.input.tick(d);
 
 		},
@@ -67,6 +69,8 @@
 			var gfx = Ω.gfx;
 
 			this.screen.render(gfx);
+			this.dialog && this.dialog.render(gfx);
+
 		},
 
 		setScreen: function (screen) {
@@ -74,6 +78,18 @@
 			this.lastScreen = null;
 			this.lastScreen = this.screen;
 			this.screen = screen;
+
+		},
+
+		setDialog: function (dialog) {
+
+			this.dialog = dialog;
+
+		},
+
+		clearDialog: function () {
+
+			this.setDialog(null);
 
 		}
 	});
