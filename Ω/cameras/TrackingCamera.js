@@ -27,7 +27,7 @@
 			this.y = entity.y - (Ω.env.h / 2);
 		},
 
-		tick: function (d) {
+		tick: function () {
 
 			var center = Ω.utils.center(this),
 				e = this.entity,
@@ -50,6 +50,11 @@
 		},
 
 		render: function (gfx, renderables) {
+
+			if (!this.debug) {
+				this._super(gfx, renderables);
+				return;
+			}
 
 			this._super(gfx, renderables.concat([{
 				render: function (gfx, cam) {

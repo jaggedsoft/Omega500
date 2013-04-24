@@ -10,7 +10,8 @@
 
 		init: function () {
 
-			var i;
+			var i,
+				self = this;
 
 			this.players = [new Player(Ω.env.w, 51, true)];
 
@@ -32,6 +33,11 @@
 				[ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
 				[ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 			]);
+			this.players.forEach(function (p) {
+
+				p.setMap(self.map);
+
+			});
 
 			this.physics = new Ω.Physics();
 
@@ -40,22 +46,22 @@
 
 		},
 
-		tick: function (d) {
+		tick: function () {
 
 			var self = this;
 
-			this.camera.tick(d);
+			this.camera.tick();
 			//this.camera.x += (Math.sin(Date.now() / 1000) * 20);
 			//this.camera.y += (Math.cos(Date.now() / 2000) * 20);
 
 			this.players.forEach(function (p, i) {
 
-				p.tick(d, self.map);
+				p.tick(self.map);
 
 			});
 
-			this.trig.tick(d);
-			this.trig2.tick(d);
+			this.trig.tick();
+			this.trig2.tick();
 
 			this.physics.checkCollisions([
 				this.players,

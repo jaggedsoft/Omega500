@@ -17,8 +17,8 @@
 
 		},
 
-		tick: function (d) {
-			this.splat.tick(d);
+		tick: function () {
+			this.splat.tick();
 		},
 
 		render: function (gfx) {
@@ -34,7 +34,7 @@
 
 			this.splat.play(this.x + this.w / 2, this.y + this.h / 2);
 
-			Ω.timer(2, function () {
+			Ω.timer(3, function () {
 
 				e.particle && e.particle.play(e.x + e.w / 2, e.y + e.h / 2);
 
