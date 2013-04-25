@@ -7,18 +7,21 @@
 		players: [],
 		sheet: new Ω.SpriteSheet("res/tiles.png", 32),
 		bg: new Ω.Image("res/background.png"),
+		shake: null,
 
 		init: function () {
 
 			var i,
 				self = this;
 
-			this.players = [new Player(Ω.env.w, 51, true)];
+			this.players = [new Player(Ω.env.w, 51, true, this)];
 
 			for (i = 1; i < 3; i++) {
-				this.players.push(new Player(i * 40, 51));
-				this.players.push(new Player(i * 40, 211));
+				this.players.push(new Player(i * 40, 51, false, self));
+				this.players.push(new Player(i * 40, 211, false, self));
 			}
+
+			this.spring = new Spring(100, 0.3, 0.9, 0);
 
 			this.camera = new Ω.TrackingCamera(this.players[0], 0, 0, Ω.env.w, Ω.env.h);
 
@@ -54,11 +57,14 @@
 			//this.camera.x += (Math.sin(Date.now() / 1000) * 20);
 			//this.camera.y += (Math.cos(Date.now() / 2000) * 20);
 
+			var vel = this.spring.tick(this.players[1], this.players[2]);
+
 			this.players.forEach(function (p, i) {
 
-				p.tick(self.map);
+				p.tick(self.map, vel);
 
 			});
+
 
 			this.trig.tick();
 			this.trig2.tick();
@@ -69,6 +75,10 @@
 				this.trig2
 			]);
 
+			if (this.shake && !this.shake.tick()) {
+				this.shake = null;
+			}
+
 			if (Ω.input.pressed("space")) {
 				// Track a random fellow!
 				this.camera.track(
@@ -77,6 +87,10 @@
 			}
 			if (Ω.input.pressed("escape")) {
 				game.setScreen(new TitleScreen());
+			}
+
+			if (Ω.input.pressed("mouse1")) {
+				console.log(Ω.input.mouse.x | 0);
 			}
 
 		},
@@ -89,7 +103,11 @@
 			c.fillStyle = "hsl(195, 40%, 50%)";
 			c.fillRect(0, 0, gfx.w, gfx.h);
 
+			c.save();
+
 			this.bg.render(gfx, 0, 0);
+
+			this.shake && this.shake.render(gfx);
 
 			this.camera.render(gfx, [
 				this.map,
@@ -99,6 +117,8 @@
 			]);
 
 			gfx.text.drawShadowed("[esc]", 2, 10, 1, "7pt MonoSpace");
+
+			c.restore();
 		}
 	});
 

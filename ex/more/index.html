@@ -35,20 +35,42 @@
 		<script src="../../Ω/anim/Anim.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../../Ω/maps/Map.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../../Ω/maps/IsoMap.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../Ω/maps/RayCastMap.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../../Ω/entities/Entity.js" type="text/javascript" charset="utf-8"></script>
 		<script src="../../Ω/Game.js" type="text/javascript" charset="utf-8"></script>
 
-		<!-- test game files -->
-		<script src="scripts/TitleScreen.js" type="text/javascript" charset="utf-8"></script>
-		<script src="scripts/MainScreen.js" type="text/javascript" charset="utf-8"></script>
-		<script src="scripts/Player.js" type="text/javascript" charset="utf-8"></script>
-		<script src="scripts/Teleporter.js" type="text/javascript" charset="utf-8"></script>
-		<script src="scripts/PlatformGame.js" type="text/javascript" charset="utf-8"></script>
-
 		<script type="text/javascript" charset="utf-8">
 
-			var game = new PlatformGame(400, 150);
+			var game = new (Ω.Game.extend({
+
+				canvas: "#board",
+
+				init: function (w, h) {
+
+					this._super(w, h);
+
+					Ω._progress = function (cur, max) {
+						// use for progress bar
+						var gfx = Ω.gfx;
+							c = gfx.ctx;
+						c.fillStyle = "#fff";
+						c.fillText(cur + ":" + max, gfx.w / 2, gfx.h / 2);
+					};
+
+				},
+
+				render: function () {
+
+					this._super();
+
+					var gfx = Ω.gfx;
+						c = gfx.ctx;
+
+					c.fillStyle = "#fff";
+					c.fillText("Test", gfx.w / 2, gfx.h / 2);
+
+				}
+
+			}))(400, 300);
 
 		</script>
 	</body>
