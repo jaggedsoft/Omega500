@@ -5,12 +5,30 @@
 	var Dialog = Ω.Class.extend({
 
 		killKey: "escape",
+		time: 0,
 
-		tick: function () {
+		init: function (key) {
 
-			if (Ω.input.pressed(this.killKey)) {
-				game.clearDialog();
+			if (key) {
+				this.killKey = key;
 			}
+
+		},
+
+		tick: function (delta) {
+
+			this.time += delta;
+
+			if (this.killKey && Ω.input.pressed(this.killKey)) {
+				Ω.input.release(this.killKey);
+				this.done();
+			}
+
+		},
+
+		done: function () {
+
+			game.clearDialog();
 
 		},
 

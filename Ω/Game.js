@@ -7,6 +7,7 @@
 		canvas: "body",
 
 		running: false,
+		time: 0,
 
 		preset_dt: 1 / 60,
 		currentTime: Date.now(),
@@ -17,7 +18,7 @@
 		_screenFade: 0,
 		dialog: null,
 
-		init: function (w, h, bgColor) {
+		init: function (w, h) {
 
 			var ctx = initCanvas(this.canvas, w, h),
 				self = this;
@@ -25,29 +26,44 @@
 			Ω.env.w = ctx.canvas.width;
 			Ω.env.h = ctx.canvas.height;
 
-			ctx.fillStyle = bgColor || "#333";
-			ctx.fillRect(0, 0, Ω.env.w, Ω.env.h);
-
 			Ω.gfx.init(ctx);
 			Ω.input.init(ctx.canvas);
 
-			Ω._onload = function () {
+			Ω.evt.onload.push(function () {
+				self.load();
 				self.run(Date.now());
-			};
-
-			if (!Ω.preloading) {
-				Ω._onload();
-			}
+			});
+			window.addEventListener("load", function () {
+				Ω.pageLoad();
+			}, false);
 
             this.running = true;
 
+            // Use the game time, rather than Date.now()
+			Ω.utils.now = function () {
+				return self.now();
+			}
+
 		},
 
-		reset: function () {},
+		reset: function () {
+
+			this.time = 0;
+
+		},
+
+		now: function () {
+
+			return this.time * 1000;
+
+		},
+
+		load: function () {},
 
 		run: function () {
 
-            var now = Date.now(),
+            var self = this,
+            	now = Date.now(),
                 frameTime = Math.min((now - this.currentTime) / 1000, this.preset_dt),
                 c;
 
@@ -58,7 +74,7 @@
                 c = 0;
                 while (this.accumulator >= this.preset_dt) {
                     c++;
-                    this.tick();
+                    this.tick(this.preset_dt);
                     this.accumulator -= this.preset_dt;
                 }
                 if (c > 1) {
@@ -69,28 +85,35 @@
             }
 
             window.requestAnimationFrame(function () {
-                game.run(Date.now());
+
+                self.run(Date.now());
+
             });
 
 		},
 
 		stop: function () {},
 
-		tick: function () {
+		tick: function (delta) {
 
 			if (this.dialog) {
-				this.dialog.tick();
+				this.dialog.tick(delta);
 			} else {
-				this.screen.tick();
+				this.time += delta;
+				this.screen.loaded && this.screen.tick();
 				Ω.timers.tick();
 			}
 			Ω.input.tick();
 
 		},
 
-		render: function () {
+		render: function (gfx) {
 
-			var gfx = Ω.gfx;
+			gfx = gfx || Ω.gfx;
+
+			if (!this.screen.loaded) {
+				return;
+			}
 
 			this.screen.render(gfx);
 			if (this.screenFade > 0) {
@@ -103,7 +126,6 @@
 		},
 
 		setScreen: function (screen) {
-
 
 			var self = this;
 
@@ -174,6 +196,9 @@
 			selCanvas.appendChild(newCanvas);
 			ctx = newCanvas.getContext("2d");
 		}
+		ctx.imageSmoothingEnabled = false;
+		ctx.mozImageSmoothingEnabled = false;
+		ctx.webkitImageSmoothingEnabled = false;
 
 		if (!ctx) {
 			console.error("Could not get 2D context.");

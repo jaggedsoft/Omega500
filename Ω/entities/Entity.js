@@ -6,32 +6,54 @@
 
 		x: 0,
 		y: 0,
+		w: 32,
+		h: 32,
 
-		init: function () {},
+		falling: false,
+		wasFalling: false,
 
-		tick: function () {},
+		remove: false,
+
+		init: function () {
+
+		},
+
+		tick: function () {
+
+			return !(this.remove);
+
+		},
 
 		hit: function (entity) {},
 
-		hitBlocks: function(blocks) {},
+		hitBlocks: function(xBlocks, yBlocks) {},
 
 		move: function (x, y, map) {
 
 			// Temp holder for movement
-			var xo = x,
-				yo = y,
+			var xo,
+				yo,
 
-				xv = this.x + xo,
-				yv = this.y + yo,
+				xv,
+				yv,
 
 				hitX = false,
 				hitY = false,
 
 				xBlocks,
-				yBlocks;
+				yBlocks,
+				yBlocksWithXMove;
 
+			if (this.falling) {
+				y += this.ySpeed * 2;
+			}
+			xo = x;
+			yo = y;
 
-			// check blocks given vertical movement
+			xv = this.x + xo;
+			yv = this.y + yo;
+
+			// check blocks given vertical movement TL, BL, TR, BR
 			yBlocks = map.getBlocks([
 				[this.x, yv],
 				[this.x, yv + (this.h - 1)],
@@ -40,16 +62,22 @@
 			]);
 
 			// if overlapping edges, move back a little
-			if (y < 0 && (yBlocks[0] || yBlocks[2])) {
-				yo = map.getBlockEdge(this.y, "VERT") - this.y;
+			if (y < 0 && (yBlocks[0] > map.walkable || yBlocks[2] > map.walkable)) {
+
+				// Hmmm... why only this guy needs to be floored?
+				yo = map.getBlockEdge((yv | 0) + map.sheet.h, "VERT") - this.y;
 				hitY = true;
 			}
-			if (y > 0 && (yBlocks[1] || yBlocks[3])) {
-				yo = map.getBlockEdge(yv + (this.h - 1), "VERT") - this.y - this.h;
+			if (y > 0 && (yBlocks[1] > map.walkable || yBlocks[3] > map.walkable)) {
+				yo = map.getBlockEdge(yv + this.h, "VERT") - this.y - this.h;
 				hitY = true;
+				this.falling = false;
 			}
 
-			// Now check blocks given horizontal movement
+			// Add the allowed Y movement
+			this.y += yo;
+
+			// Now check blocks given horizontal movement TL, BL, TR, BR
 			xBlocks = map.getBlocks([
 				[xv, this.y],
 				[xv, this.y + (this.h - 1)],
@@ -58,12 +86,12 @@
 			]);
 
 			// if overlapping edges, move back a little
-			if (x < 0 && (xBlocks[0] || xBlocks[1])) {
-				xo = map.getBlockEdge(this.x) - this.x;
+			if (x < 0 && (xBlocks[0] > map.walkable || xBlocks[1] > map.walkable)) {
+				xo = map.getBlockEdge(xv + map.sheet.w) - this.x;
 				hitX = true;
 			}
-			if (x > 0 && (xBlocks[2] || xBlocks[3])) {
-				xo = map.getBlockEdge(xv + (this.w - 1)) - this.x - this.w;
+			if (x > 0 && (xBlocks[2] > map.walkable || xBlocks[3] > map.walkable)) {
+				xo = map.getBlockEdge(xv + this.w) - this.x - this.w;
 				hitX = true;
 			}
 
@@ -71,10 +99,10 @@
 				this.hitBlocks(hitX ? xBlocks : null, hitY ? yBlocks : null);
 			}
 
-			// Add the allowed movement
+			// Add the allowed X movement
 			this.x += xo;
-			this.y += yo;
 
+			return [xo, yo];
 		},
 
 		render: function (gfx) {}

@@ -16,21 +16,52 @@
 
 		},
 
-		loadImage: function (path, cb) {
+		loadImage: function (path, cb, flipFlags) {
 
-			if (images[path]) {
-				cb && cb();
-				return images[path];
+			// TODO: don't need to reload if non-flipped image exists
+			var cachedImage = images[path + (flipFlags ? ":" + flipFlags : "")];
+
+			if (cachedImage) {
+				if (!cachedImage._loaded) {
+					cachedImage.addEventListener("load", function() {
+						cb && cb(cachedImage);
+					}, false);
+					cachedImage.addEventListener("load", function() {
+						cb && cb(cachedImage);
+					}, false);
+				} else {
+					cb && cb(cachedImage);
+				}
+				return;
 			}
 
-			var image = new Image();
+			var resolve = Ω.preload(path),
+				image = new Image(),
+				self = this,
+				onload = function () {
 
+					var procImage;
+
+					if (flipFlags) {
+						procImage = self.flipImage(image, flipFlags);
+					}
+
+					this._loaded = true;
+					cb && cb(procImage || image);
+					resolve();
+
+				}
+
+			image._loaded = false;
 			image.src = path;
-			image.onload = function() {
-				cb && cb();
-			};
-			images[path] = image;
-			return image;
+			image.addEventListener("load", onload, false);
+			image.addEventListener("error", function() {
+
+				console.error("Error loading image", path);
+				onload.call(this);
+
+			}, false);
+			images[path + (flipFlags ? ":" + flipFlags : "")] = image;
 
 		},
 
@@ -40,6 +71,31 @@
 				img,
 				x,
 				y);
+		},
+
+		flipImage: function (img, flags) {
+
+			// flip x = 1, y = 2, both = 3
+			var ctx = this.createCanvas(img.width, img.height);
+
+			ctx.save();
+			ctx.translate(flags & 1 ? img.width : 0, flags & 2 ? img.height : 0);
+			ctx.scale(flags & 1 ? -1 : 1, flags & 2 ? -1 : 1);
+			ctx.drawImage(img, 0, 0);
+			ctx.restore();
+
+			return ctx.canvas;
+
+		},
+
+		createCanvas: function (w, h) {
+
+			var cn = document.createElement("canvas");
+
+			cn.setAttribute("width", w);
+			cn.setAttribute("height", h);
+			return cn.getContext("2d");
+
 		},
 
 		text: {

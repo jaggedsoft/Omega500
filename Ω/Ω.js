@@ -3,37 +3,66 @@ var Ω = (function() {
 	"use strict";
 
 	var preloading = true,
+		pageLoaded = false,
 		assetsToLoad = 0,
 		maxAssets = 0,
-		timers = []
+		timers = [];
 
 	return {
-		_onload: null,
-		_progress: null,
+
+		evt: {
+			onload: [],
+			progress: []
+		},
 
 		env: {
 			w: 0,
 			h: 0
 		},
 
-		preload: function () {
+		preload: function (name) {
 
 			if (!preloading) {
-				return function () {};
+				return function () {
+					console.error("empty preloading func called:", name);
+				};
 			}
 
 			maxAssets = Math.max(++assetsToLoad, maxAssets);
-
 			return function () {
 
-				if (--assetsToLoad === 0) {
+				assetsToLoad -= 1;
+
+				Ω.evt.progress.map(function (p) {
+					return p(assetsToLoad, maxAssets);
+				});
+
+				if (assetsToLoad === 0 && pageLoaded) {
+					console.log("loaded from reslove");
+					if (!preloading) {
+						console.error("Preloading finished (onload called) multiple times!");
+					}
 					preloading = false;
-					Ω._onload && Ω._onload();
-				} else {
-					Ω._progress && Ω._progress(assetsToLoad, maxAssets)
+
+					Ω.evt.onload.map(function (o) {
+						o();
+					});
 				}
 
 			}
+		},
+
+		pageLoad: function () {
+
+			pageLoaded = true;
+
+			if (maxAssets === 0 || assetsToLoad === 0) {
+				// No assets to load, so fire onload
+				Ω.evt.onload.map(function (o) {
+					o();
+				});
+			}
+
 		},
 
 		timers: {
@@ -54,11 +83,28 @@ var Ω = (function() {
 
 			}
 
-		}
+		},
+
+		urlParams: (function () {
+			var params = {},
+				match,
+				pl = /\+/g,  // Regex for replacing addition symbol with a space
+				search = /([^&=]+)=?([^&]*)/g,
+				decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+				query = window.location.search.substring(1);
+
+			while (match = search.exec(query)) {
+			   params[decode(match[1])] = decode(match[2]);
+			}
+
+			return params;
+		}())
 
 	};
 
 }());
 
+// Polyfills
+Array.isArray || (Array.isArray = function (a){ return '' + a !== a && {}.toString.call(a) == '[object Array]' });
 window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame;
 

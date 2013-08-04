@@ -4,12 +4,17 @@
 
 	var Image = Ω.Class.extend({
 
-		init: function (path) {
+		init: function (path, flipFlags) {
+
+			var self = this;
 
 			this.path = path;
-			this.img = Ω.gfx.loadImage(path, (function (){
-				return Ω.preload();
-			}()));
+
+			Ω.gfx.loadImage(path, function (img){
+
+				self.img = img;
+
+			}, flipFlags);
 
 		},
 
@@ -20,6 +25,7 @@
 				x,
 				y
 			);
+
 		}
 
 	});
