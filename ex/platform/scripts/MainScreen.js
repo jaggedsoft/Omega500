@@ -30,7 +30,13 @@
 				[ 7, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 9, 0, 0, 3],
 				[ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
 				[ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-				[ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+				[ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1],
+				[ 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 0, 0, 0, 0, 2],
+				[ 7, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
+				[ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 9, 0, 0, 1],
+				[ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+				[ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+				[ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 			]);
 
 			this.para = new Ω.Map(this.sheet, [
@@ -61,6 +67,7 @@
 
 			this.teleport1 = new Teleporter(19, 2, -15, 5);
 			this.teleport2 = new Teleporter(1, 7, 0, -5);
+			this.teleport3 = new Teleporter(18, 13, 0, -11);
 
 		},
 
@@ -78,11 +85,13 @@
 
 			this.teleport1.tick();
 			this.teleport2.tick();
+			this.teleport3.tick();
 
 			Ω.Physics.checkCollisions([
 				this.players,
 				this.teleport1,
-				this.teleport2
+				this.teleport2,
+				this.teleport3
 			]);
 
 			if (this.shake && !this.shake.tick()) {
@@ -124,7 +133,8 @@
 				this.map,
 				this.players,
 				this.teleport1,
-				this.teleport2
+				this.teleport2,
+				this.teleport3
 			]);
 
 			gfx.text.drawShadowed("[esc]", 2, 10, 1, "7pt MonoSpace");
