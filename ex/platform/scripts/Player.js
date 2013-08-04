@@ -10,14 +10,13 @@
 
 		vel: [0, 0],
 
-		sheet: new Ω.SpriteSheet("res/charzera.png", 25, 45),
+		sheet: new Ω.SpriteSheet("res/charzera.png", 25, 45, 3),
 		sounds: {
-			"crouch": new Ω.Sound("res/crouch.wav", 1)
+			"crouch": new Ω.Sound("../res/audio/crouch.wav", 1)
 		},
 
 		init: function (startX, startY, isPlayer, screen) {
 
-			// FIXME: need event system (or something) instead of this.
 			this.screen = screen;
 
 			this.isPlayer = isPlayer;
@@ -25,12 +24,12 @@
 			this.anims = new Ω.Anims([
 				new Ω.Anim("idle", this.sheet, 500, [[8, 0], [9, 0]]),
 				new Ω.Anim("walk", this.sheet, 70, [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0]]),
-				new Ω.Anim("walkLeft", this.sheet, 70, [[13, 3], [12, 3], [11, 3], [10, 3], [9, 3], [8, 3], [7, 3], [6, 3]])
+				new Ω.Anim("walkLeft", this.sheet, 70, [[14, 0], [15, 0], [16, 0], [17, 0], [18, 0], [19, 0], [20, 0], [21, 0]])
 			]);
 
 			this.x = startX;
 			this.y = startY;
-			this.speed = 1 + Math.random() * 0.2;
+			this.speed = isPlayer ? 2 : 1 + Math.random() * 0.2;
 
 			this.anims.set(isPlayer ? "idle" : "walk");
 
@@ -44,7 +43,7 @@
 			this.map = map;
 		},
 
-		tick: function (map, spring) {
+		tick: function (map) {
 
 			var x1 = 0,
 				y1 = 0;
@@ -53,10 +52,6 @@
 			this.particle.tick();
 
 			if (this.isPlayer) {
-				//this.speed = Math.abs(this.speed);
-				//x1 += spring[0];
-				//y1 += spring[1];
-
 				if (Ω.input.isDown("left")) {
 					this.anims.setTo("walkLeft");
 					x1 -= this.speed;
@@ -92,7 +87,7 @@
 
 		},
 
-		hitBlocks: function (blocks) {
+		hitBlocks: function (xBlocks, yBlocks) {
 
 			if (!this.isPlayer) {
 				this.dir *= -1;
@@ -114,7 +109,6 @@
 		},
 
 		render: function (gfx, map) {
-
 
 			// Test raycastin'
 			if (this.isPlayer) {

@@ -10,20 +10,26 @@
 
 			this._super(w, h);
 
-			Ω._progress = function (cur, max) {
-				// use for progress bar
-			};
+			Ω.Sound._setVolume(0);
 
 
-			Ω.input.binds([
+			Ω.evt.progress.push(function (remaining, max) {
+                console.log((((max - remaining) / max) * 100 | 0) + "%");
+            });
+
+			Ω.input.bind([
 				["space", "space"],
 				["escape", "escape"],
 				["left", "left"],
 				["right", "right"],
 				["up", "up"],
 				["down", "down"],
-				["mouse1", "mouse1"]
+				["mouse1", "moused"]
 			]);
+
+		},
+
+		load: function () {
 
 			this.setScreen(new TitleScreen());
 

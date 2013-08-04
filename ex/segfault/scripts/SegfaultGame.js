@@ -2,7 +2,7 @@
 
 	"use strict";
 
-	var IsoGame = Ω.Game.extend({
+	var SegfaultGame = Ω.Game.extend({
 
 		canvas: "#board",
 
@@ -10,18 +10,26 @@
 
 			this._super(w, h);
 
-			Ω.evt.progress.push(function (cur, max) {
-				//console.log(cur, max);
-			});
+			Ω.evt.progress.push(function (remaining, max) {
+
+            });
 
 			Ω.input.bind([
-				["space", "fire"],
+				["space", "space"],
+				[67, "launch"],
 				["escape", "escape"],
 				["left", "left"],
 				["right", "right"],
 				["up", "up"],
 				["down", "down"]
 			]);
+
+		},
+
+		reset: function () {
+
+			this._super();
+			this.load();
 
 		},
 
@@ -33,6 +41,6 @@
 
 	});
 
-	window.IsoGame = IsoGame;
+	window.SegfaultGame = SegfaultGame;
 
 }(Ω));
