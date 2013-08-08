@@ -5,8 +5,10 @@
 	var MainScreen = Ω.Screen.extend({
 
 		players: [],
-		sheet: new Ω.SpriteSheet("res/tiles.png", 32, 32),
+
 		bg: new Ω.Image("../res/images/background.png", 1),
+		sheet: new Ω.SpriteSheet("res/tiles.png", 32, 32),
+
 		shake: null,
 
 		init: function () {
@@ -27,6 +29,7 @@
 				[ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 				[ 1, 1, 1, 1, 1, 7, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 				[ 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 0, 0, 0, 0, 2],
+				[ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
 				[ 7, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 9, 0, 0, 3],
 				[ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
 				[ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -65,9 +68,9 @@
 
 			});
 
-			this.teleport1 = new Teleporter(19, 2, -15, 5);
-			this.teleport2 = new Teleporter(1, 7, 0, -5);
-			this.teleport3 = new Teleporter(18, 13, 0, -11);
+			this.teleport1 = new Teleporter(19, 2, -15, 6);
+			this.teleport2 = new Teleporter(1, 8, 0, -6);
+			this.teleport3 = new Teleporter(18, 14, 0, -12);
 
 		},
 

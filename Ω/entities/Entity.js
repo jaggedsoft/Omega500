@@ -42,8 +42,7 @@
 				hitY = false,
 
 				xBlocks,
-				yBlocks,
-				yBlocksWithXMove;
+				yBlocks;
 
 			if (this.falling) {
 				y += this.gravity;
@@ -64,7 +63,6 @@
 
 			// if overlapping edges, move back a little
 			if (y < 0 && (yBlocks[0] > map.walkable || yBlocks[2] > map.walkable)) {
-
 				// Hmmm... why only this guy needs to be floored?
 				yo = map.getBlockEdge((yv | 0) + map.sheet.h, "VERT") - this.y;
 				hitY = true;
@@ -72,7 +70,6 @@
 			if (y > 0 && (yBlocks[1] > map.walkable || yBlocks[3] > map.walkable)) {
 				yo = map.getBlockEdge(yv + this.h, "VERT") - this.y - this.h;
 				hitY = true;
-				this.falling = false;
 			}
 
 			// Add the allowed Y movement
@@ -110,6 +107,8 @@
 			]);
 			if (yBlocks[0] <= map.walkable && yBlocks[1] <= map.walkable) {
 				this.falling = true;
+			} else {
+				this.falling = false;
 			}
 
 			return [xo, yo];

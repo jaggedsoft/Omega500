@@ -42,7 +42,7 @@
 
 					var procImage;
 
-					if (flipFlags) {
+					if (flipFlags >= 0) {
 						procImage = self.flipImage(image, flipFlags);
 					}
 
@@ -75,9 +75,9 @@
 
 		flipImage: function (img, flags) {
 
-			// flip x = 1, y = 2, both = 3
 			var ctx = this.createCanvas(img.width, img.height);
 
+			// flip x = 1, y = 2, both = 3, none = 0
 			ctx.save();
 			ctx.translate(flags & 1 ? img.width : 0, flags & 2 ? img.height : 0);
 			ctx.scale(flags & 1 ? -1 : 1, flags & 2 ? -1 : 1);
@@ -90,11 +90,17 @@
 
 		createCanvas: function (w, h) {
 
-			var cn = document.createElement("canvas");
+			var cn = document.createElement("canvas"),
+				ctx = cn.getContext("2d");
 
 			cn.setAttribute("width", w);
 			cn.setAttribute("height", h);
-			return cn.getContext("2d");
+
+			ctx.imageSmoothingEnabled = false;
+			ctx.mozImageSmoothingEnabled = false;
+			ctx.webkitImageSmoothingEnabled = false;
+
+			return ctx;
 
 		},
 
