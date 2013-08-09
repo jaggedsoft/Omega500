@@ -16,7 +16,8 @@
 
 		},
 
-		// Overwrite this with the game.now
+		// This gets overwritten by game.now
+		// To use game time, not real-world time
 		now: function () {
 
 			return Date.now();
@@ -179,6 +180,49 @@
 			}, false);
 			xhr.open("GET", url, true);
 			xhr.send("");
+
+		},
+
+		fullscreen: {
+
+			toggle: function (dom) {
+
+				if (!document.fullscreenElement &&
+					!document.mozFullScreenElement &&
+					!document.webkitFullscreenElement) {
+					this.request(dom);
+				} else {
+					this.cancel();
+				}
+			},
+
+			request: function (dom) {
+
+				if (typeof dom === "string") {
+					dom = document.querySelector(dom);
+				}
+
+				if (dom.requestFullscreen) {
+					dom.requestFullscreen();
+				} else if (dom.mozRequestFullScreen) {
+					dom.mozRequestFullScreen();
+				} else if (dom.webkitRequestFullscreen) {
+					dom.webkitRequestFullscreen();
+				}
+
+			},
+
+			cancel: function () {
+
+				if (document.cancelFullScreen) {
+					document.cancelFullScreen();
+				} else if (document.mozCancelFullScreen) {
+					document.mozCancelFullScreen();
+				} else if (document.webkitCancelFullScreen) {
+					document.webkitCancelFullScreen();
+				}
+
+			}
 
 		}
 
