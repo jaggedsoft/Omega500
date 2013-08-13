@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Ω500 Tile Map</title>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="../res/main.css">
+	</head>
+	<body>
+		<section>
+			<canvas id="board"></canvas>
+			<a class="home" href="./">back</a>
+		</section>
+
+		<!-- lib files -->
+		<script src="../../Ω/Ω.js"></script>
+		<script src="../../Ω/utils/base.js"></script>
+		<script src="../../Ω/utils/utils.js"></script>
+		<script src="../../Ω/utils/Timer.js"></script>
+		<script src="../../Ω/input/input.js"></script>
+		<script src="../../Ω/gfx/gfx.js"></script>
+		<script src="../../Ω/gfx/SpriteSheet.js"></script>
+		<script src="../../Ω/maps/Map.js"></script>
+		<script src="../../Ω/maps/DebugMap.js"></script>
+		<script src="../../Ω/screens/Screen.js"></script>
+		<script src="../../Ω/entities/Entity.js"></script>
+		<script src="../../Ω/Game.js"></script>
+
+		<script>
+
+			var TitleScreen = Ω.Screen.extend({
+
+				sheet: new Ω.SpriteSheet("../res/sheets/kenny_tiles.png", 72, 72),
+
+				init: function () {
+
+					this.map = new Ω.Map(this.sheet, [
+						[9,10,12,1,1,1,1,1,1,1,1,1,1],
+						[1,0,0,0,0,0,0,0,0,0,0,0,1],
+						[1,0,3,5,5,5,5,5,5,5,2,0,1],
+						[1,0,0,4,0,0,0,0,0,0,4,0,1],
+						[1,0,2,0,3,0,5,0,3,0,2,0,1],
+						[1,0,2,0,0,4,0,4,0,0,2,0,1],
+						[1,0,2,0,0,0,0,0,0,0,2,0,1],
+						[1,0,2,2,2,2,2,2,2,2,2,0,1],
+						[1,0,0,0,0,0,0,0,0,0,0,0,1],
+						[1,1,1,1,1,1,1,1,1,1,1,1,1]
+					]);
+
+				},
+
+				render: function (gfx) {
+
+					var c = gfx.ctx;
+
+					this.clear(gfx, "#000");
+					this.map.render(gfx);
+
+				}
+
+			});
+
+			// Game object
+			new (Ω.Game.extend({
+
+				canvas: "#board",
+
+				load: function () {
+
+					this.setScreen(new TitleScreen());
+
+				}
+
+			}))(600, 400);
+
+		</script>
+	</body>
+</html>

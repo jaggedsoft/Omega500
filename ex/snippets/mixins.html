@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Ω500 Mixin test</title>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="../res/main.css">
+	</head>
+	<body>
+		<section>
+			<canvas id="board"></canvas>
+			<a class="home" href="./">back</a>
+			Use arrow keys to move around
+		</section>
+
+		<!-- lib files -->
+		<script src="../../Ω/Ω.js"></script>
+		<script src="../../Ω/utils/base.js"></script>
+		<script src="../../Ω/utils/utils.js"></script>
+		<script src="../../Ω/utils/Timer.js"></script>
+		<script src="../../Ω/traits/Trait.js"></script>
+		<script src="../../Ω/traits/traits.js"></script>
+		<script src="../../Ω/input/input.js"></script>
+		<script src="../../Ω/gfx/gfx.js"></script>
+		<script src="../../Ω/gfx/SpriteSheet.js"></script>
+		<script src="../../Ω/maps/Map.js"></script>
+		<script src="../../Ω/screens/Screen.js"></script>
+		<script src="../../Ω/entities/Entity.js"></script>
+		<script src="../../Ω/Game.js"></script>
+
+		<script>
+
+			var Guy = Ω.Entity.extend({
+
+				w: 18,
+				h: 25,
+
+				color: "#488",
+
+				tick: function (map) {
+
+					this._super(); // Required to tick mixins
+
+					if (Ω.input.isDown("up")) { this.yo = -2; }
+					if (Ω.input.isDown("down")) { this.yo = 2; }
+					if (Ω.input.isDown("left")) { this.xo = -2; }
+					if (Ω.input.isDown("right")) { this.xo = 2; }
+
+					this.move(this.xo, this.yo, map);
+
+				},
+
+				render: function (gfx) {
+
+					var c = gfx.ctx;
+
+					c.fillStyle = this.remove ? "#900" : this.color;
+					c.fillRect(this.x, this.y, this.w, this.h);
+
+				}
+
+			});
+
+
+			var MainScreen = Ω.Screen.extend({
+
+				sheet: new Ω.SpriteSheet("../res/sheets/tiles.png", 32, 32),
+
+				init: function () {
+
+					this.map = new Ω.Map(this.sheet, [
+						[1,1,1,1,1,1,1,1,1,1,1,1,1],
+						[1,0,0,0,0,0,0,0,0,0,0,0,1],
+						[1,0,0,1,1,1,0,1,1,1,1,0,1],
+						[1,0,0,0,0,0,0,0,0,0,0,0,1],
+						[1,0,1,1,1,1,0,1,1,1,1,0,1],
+						[1,0,0,0,0,4,0,4,0,0,0,0,1],
+						[1,0,0,0,0,0,0,0,0,0,0,0,1],
+						[1,0,2,2,2,2,2,2,2,2,2,0,1],
+						[1,0,0,0,0,0,0,0,0,0,0,0,1],
+						[1,1,1,1,1,1,1,1,1,1,1,1,1]
+					]);
+
+					// Make some players & mix in some things
+					this.p1 = new Guy(6 * 32, 6 * 32);
+					this.p1.mixin([
+						{trait: Ω.traits.RemoveAfter, ticks: 300},
+						{trait: Ω.traits.Ticker, ticks: 100, cb: function (t) {
+							this.color = "#0f0";
+						}},
+						{trait: Ω.traits.Sin, speed: 70, amp: 10},
+						{trait: Ω.traits.Sin, speed: 170, amp: 2, target: "xo"}
+					]);
+
+					this.p2 = new Guy(2 * 32, 2 * 32);
+					this.p2.mixin([
+						{trait: Ω.traits.Sin, speed: 170, amp: 30}
+					]);
+
+				},
+
+				tick: function () {
+
+					// Update the player
+					this.p1.tick(this.map);
+					this.p2.tick(this.map);
+
+				},
+
+				render: function (gfx) {
+
+					var c = gfx.ctx;
+
+					this.clear(gfx, "#000");
+
+					// Draw the player and map
+					this.map.render(gfx);
+					this.p1.render(gfx);
+					this.p2.render(gfx);
+
+				}
+
+			});
+
+			new (Ω.Game.extend({
+
+				canvas: "#board",
+
+				load: function () {
+
+					Ω.input.bind([
+						["left", "left"],
+						["right", "right"],
+						["up", "up"],
+						["down", "down"]
+					]);
+
+					this.setScreen(new MainScreen());
+
+				}
+
+			}))(400, 300);
+
+		</script>
+	</body>
+</html>

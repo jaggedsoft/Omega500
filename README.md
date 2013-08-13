@@ -1,19 +1,19 @@
 # Ω500: JS Game Library
 
-Ω500 is a simple framework for me to make 2D canvas-based games. It focuses on providing an architecturally simple set of tools for creating games in an old-school, straightforward way. Check out the online examples: http://mrspeaker.github.io/Omega500/.
+Ω500 is a simple library for making canvas-based games. It focuses on providing an architecturally simple set of tools for creating games in an old-school, straightforward way: primarily for game jams and rapid prototyping. Check out the online examples: http://mrspeaker.github.io/Omega500/.
 
 ![Platform example](http://www.mrspeaker.net/images/omegaPlat.png)
 
 ## Ω500 Features:
 
-Main game loop. Screens, dialogs, and transitions. Input handling (keys, mouse, touch, iCade). Image loading and display. SpriteSheet animations. Tile and isometric maps. Repeating maps, with parallax. Entity/Map and Entity/Entity collisions. Entity gravity/falling. Generate maps from images. Camera'd map, Tracked camera (with box). Audio load/play. Math/random/timer helpers. Asset preloader/progress. Simple particle controller. Raycast against maps. Path finding. Auto-genereated tile sets for prototyping. Text helpers. Font plotter (very specific! fix this). State machine helper. "Tiled" map editor level support. Fullscreen API support. Flipped spritesheets and images. Spring algo (for camera & entities). Shake effect.
+Main game loop. Screens, dialogs, and transitions. Input handling (keys, mouse, touch, iCade). Image loading and display. SpriteSheet animations. Tile and isometric maps. Repeating maps, with parallax. Entity/Map and Entity/Entity collisions. Entity gravity/falling. Generate maps from images. Camera'd map, Tracked camera (with box). Audio load/play. Math/random/timer helpers. Asset preloader/progress. Simple particle controller. Raycast against maps. Path finding. Auto-genereated tile sets for prototyping. Text helpers. Font plotter. Mixin system. State machine helper. "Tiled" map editor level support. Fullscreen API support. Flipped spritesheets and images. Spring algo (for camera & entities). Shake effect.
 
 ## Some games using Ω500
 
 [DIGIBOTS & CO](http://www.mrspeaker.net/dev/game/digibots): inside-out Lemmings game where you need to build a path to complete the level. Finalist in the NoFuture contest where it's to become a real-life arcade machine. Neat-o! [Source on GitHub](https://github.com/mrspeaker/digibots). [Zmore](http://mrspeaker.net/dev/ld26): LD#26 entry on the theme "minimalism". Turn light into darkness and escape minimalist captivity [Source on GitHub](https://github.com/mrspeaker/ld26)
 
 ![DIGIBOTS & CO](http://www.mrspeaker.net/images/digibots-title.jpg)
-![DIGIBOTS & CO](http://www.mrspeaker.net/images/omegaDigibots.jpg?a=1)
+![DIGIBOTS & CO](http://www.mrspeaker.net/images/omegaDigibots.jpg)
 ![Zmore](http://www.mrspeaker.net/images/omegaZmore.png)
 
 ## Docs
@@ -24,22 +24,23 @@ Best just to check the examples and games.
 
 Old-school, super-simple architecture: Everything has `tick` and `render(gfx)` methods. Each object manages its children and passes these calls on so the entire heirachy receives the messages. Everyone gets ticked, then rendered.
 
-    .           game
+    .           game            // extend Ω.Game
     .            |
-    .       level screen
+    .          screen           // extend Ω.Screen
     .            |
-    .      ___ level __
+    .      ____________
     .     |      |     |
-    .  player baddies  map
+    .  player baddies  map      // extend Ω.Entity, Ω.Entity, and Ω.Map
     .     |
-    .  bullets
+    .  bullets                  // extend Ω.Entity
 
-Every loop the engine calls `tick` on the main game object. This (automatically) calls `tick` on its current screen. The screen (manually) calls `tick` on its main child object (level). Level (manually) calls `tick` on its children (player, all the baddies in the baddie array, map) and so on. Once the tick is done, the same thing happens with `render`. I might generalise this later, so everything really has a concept of "children", but for now it's good enough: if you want something ticked, then `tick` it. If you want something rendered, then `render` it!
+Every loop the engine calls `tick` on the main game object. This (automatically) calls `tick` on its current screen. The screen (manually) calls `tick` on its children (player, all the baddies in the baddie array, map) and so on. Once the tick is done, the same thing happens with `render`. (I might generalise this later, so everything really has a concept of "children", but for now it's good enough: if you want something ticked, then `tick` it. If you want something rendered, then `render` it!)
 
-Most of the components in Ω500 are in their most basic form - just good enough for me to use as a base for writing games. As I need features, I add them - but it means some stuff only works in one situtation. For example, spritesheets can't contain any margins; no custom bounding boxes etc. These are all easy to fix, but because I'm focusing on finishin' games - it'll take a while before I address everything. Also, it explains why you there are some weirder functions - like map ray casting... because I needed them!
+**Random helpful notes**
 
-Most positions are given as a 2 element [x, y] array.
-
+* Most positions are given as a 2 element [x, y] array.
+* Uses John Resig's simple class with inheritance (see below)
+* Deploying: copy/paste all the script tags! (or minify your own)
 
 ### Ω.Game
 
@@ -75,7 +76,7 @@ Things inherited from `Ω.Screen` are scene containers to display stuff in. `tic
 
     game.setScreen(new TitleScreen());
 
-If you need to do async stuff on load, then set the screen's `loaded` property to `false`. When you're done, set it to `true`.
+If you're just calling it from the game `load` function then it's `this.setScreen(...)`. If you need to do async stuff on load, then set the screen's `loaded` property to `false`. When you're done, set it to `true`.
 
 In render, you can clear the screen to a color (if you need to):
 
@@ -85,7 +86,9 @@ In render, you can clear the screen to a color (if you need to):
 
 Players, bad guys, monsters etc should inherit from `Ω.Entity`. Entities know how to move inside maps, and can have collision detection with other entities.
 
-Has x, y, w, h properties which is used for map/entity collision detection.
+    var player = new Ω.Entity(100, 100, 18, 24); // x, y, w, h
+
+Has x, y, w, h properties which is used for map/entity collision detection. Width and height are optional if you specify them in the class itself (default is w: 32, h: 32).
 
 There are a couple of conventions for updating collections of entities. For "ticking", call tick on each object - and inside the object's tick method return `true` if it's still alive, and `false` if it should be removed:
 
@@ -115,12 +118,42 @@ How things are rendered is completely up to you. You get the passed the `gfx` ob
 
 *Bounding boxes*
 
-Sometimes it's useful to see where the bounding box of your entity is. There's nothing built in for this (and at the moment there is no easy way to change a bounding box for animation frames etc), so for now just do it yourself at the end of the render method:
+Sometimes it's useful to see where the bounding box of your entity is. There's no debug mode, but the default rendering of an entity is something like this:
 
-    gfx.ctx.strokeStyle = "red";
-    gfx.ctx.strokeRect(this.x, this.y, this.w, this.h);
+    gfx.ctx.fillStyle = "red";
+    gfx.ctx.fillRect(this.x, this.y, this.w, this.h);
 
-And you'll get a red box showing where the collision detection is used.
+You can call `this._super(gfx)` at the end of your entity render function (or draw your own) and you'll get a red box showing where the collision detection is used.
+
+### Classes
+
+Uses John Resig simple classes:
+
+    var MyClass = Ω.Class.extend({
+        init: function () {}
+    });
+
+    // Extend a base class
+    var MySubClass = MyClass.extend({});
+
+    // Instanciate the things
+    myClassGuy = new MyClass();
+    mySubClassGuy = new MySubClass();
+
+Can call super:
+
+    var Baddie = Ω.Entity.extend({
+
+        init: function (x, y) {
+
+            _this.super(x,y);
+
+            // ... do baddie init
+        }
+
+    });
+
+There's also an `init_post` method that will be called after `init`.
 
 
 ### Input
@@ -318,6 +351,25 @@ You can track the loading progress in your game object, for making a loading bar
         // console.log(loadedSoFar, maxToLoad);
     });
 
+### Font plotting
+
+Rather than using borin' old ctx text you can use a bitmap font.
+
+    font: new Ω.Font("myfont.png", 16, 16)
+
+in render:
+
+    this.font.write(gfx, "hello, world!", 100, 100)
+
+The font assumes a specific ordering of letters (that seemed to show up on a bunch of different bitmapped fonts I found:
+
+    !"#$%&'()*+,-./0123456789:;<=>?@abcdefghijklmnopqrstuvwxyz[/]^_`abcdefghijklmnopqrstuvwxyz{|}~
+
+ If you have a font with a different ordering of characters, supply this as an argument:
+
+    font: new Ω.Font("myfont.png", 16, 16, "!?abcdefghijklmnopqrstuvwyz.[]")
+
+
 ### Ray casting
 
 Just for hitting maps, not other entities.
@@ -384,7 +436,20 @@ Testing state:
     if (this.state.in("BORN", "RUNNING")) // is any of these
     if (this.state.notIn("DEAD", "RUNNING")) // none of these
 
-## TODO/ideas
+### Mixins
+
+Not quite a component/entity system - but will do in a pinch. Just experimenting with some mixins/traits... stay tuned.
+
+Some pre-defined traits
+
+    this.player.mixin([
+        {trait: Ω.traits.RemoveAfter, life: 300},
+        {trait: Ω.traits.Sin, speed: 70, amp: 10}
+    ]);
+
+## WIP/TODO
+
+Most of the components in Ω500 are in their most basic form - just good enough for me to use as a base for writing games. As I need features, I add them. This is why you there are some weirder functions - like map ray casting... because I needed them!
 
 Highest priority and WIP:
 
@@ -394,21 +459,25 @@ High priority:
 
 - Partial loader (don't load all resources on init - maybe a "no preload" flag)
 - GUI: button
-- Math: add smoothstep/lerp helper
-- Support: FPS count
+- Perf: FPS count
+- Perf: Object pooling
 - Multiple screens (as layers)
 - Random with seed
-- Stair & slope blocks
+- Retina images
+- Auto-tiling
 
 Low prority:
 
 - Gfx: DSP on spritesheets
-- Gfx: dirty rect optimisations
-- Physics: quadtree or map-by-map ents optimisiation
+- Perf: dirty rectangles
+- Perf: quadtree or map-by-map ents optimisiation
+- Perf: concat/minify into single lib file
 - Math: perlin noise
 - Math: Swarm/flock algo
 - Maps: block selecting (iso)
 - "Post" effects in webgl (see DIGIBOTS & CO.)
+- Jams: font "template" images ready to be traced over for game jams
+- Jams: nice default colours (for randoms etc)
 
 ## inFAQ:
 

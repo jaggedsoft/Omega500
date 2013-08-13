@@ -9,19 +9,51 @@
 		w: 32,
 		h: 32,
 
+		xo: 0,
+		yo: 0,
+
 		gravity: 0,
 		falling: false,
 		wasFalling: false,
 
 		remove: false,
 
-		init: function () {
+		traits: null,
+
+		init: function (x, y, w, h) {
+
+			this.x = x || this.x;
+			this.y = y || this.y;
+			this.w = w || this.w;
+			this.h = h || this.h;
 
 		},
 
 		tick: function () {
 
+			this.traits && this.traits.forEach(function (t) {
+				t.tick.call(this, t);
+			}, this);
+
 			return !(this.remove);
+
+		},
+
+		mixin: function (traits) {
+
+			if (!this.traits) {
+				this.traits = [];
+			}
+
+			traits.forEach(function (t) {
+
+				if (t.trait) {
+					var trait = new t.trait();
+					trait.init_trait.apply(this, [trait].concat(trait.makeArgs(t)));
+					this.traits.push(trait);
+				}
+
+			}, this);
 
 		},
 
@@ -111,10 +143,21 @@
 				this.falling = false;
 			}
 
+			// Reset offset amount
+			this.xo = 0;
+			this.yo = 0;
+
 			return [xo, yo];
 		},
 
-		render: function (gfx) {}
+		render: function (gfx) {
+
+			var c = gfx.ctx;
+
+			c.fillStyle = "#c00";
+			c.fillRect(this.x, this.y, this.w, this.h);
+
+		}
 
 	});
 
