@@ -346,9 +346,12 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.utils = {
 
-		rand: function (min, max) {
+		rand: function (max, min) {
 
-			return Math.floor(Math.random() * min);
+			max = max || 1;
+			min = min || 0;
+
+			return Math.floor(Math.random() * (max - min)) + min;
 
 		},
 
@@ -356,6 +359,21 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 			return this.rand(max) === 1;
 
+		},
+
+		rnd: {
+
+			seed: 42,
+
+			rand: function(max, min) {
+
+				max = max || 1;
+				min = min || 0;
+
+				this.seed = (this.seed * 9301 + 49297) % 233280;
+
+				return (this.seed / 233280) * (max - min) + min;
+			}
 		},
 
 		// This gets overwritten by game.now
@@ -599,7 +617,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 			}
 
-		}
+		},
 
 	};
 
@@ -2094,26 +2112,42 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	var SpriteSheet = Ω.Class.extend({
 
-		init: function (path, width, height, flipFlags) {
+		init: function (path, width, height, opts) {
+
+			var defaults = {
+					flipFlags: null,
+					margin: [0, 0],
+					padding: [0, 0]
+				},
+				self = this;
 
 			this.w = width;
 			this.h = height || width;
 			this.cellW = 0;
 			this.cellH = 0;
 
-			// Direct init from image
-			if (typeof path !== "string") {
-				this.populate(path, flipFlags);
-				return;
+			// Can pass flipFlags directly: TODO - figure out Options API
+			if (!isNaN(opts)) {
+				opts = {
+					flipFlags: opts
+				}
 			}
+			opts = opts || {};
 
-			var self = this;
+			this.flipFlags = opts.flipFlags || defaults.flipFlags;
+			this.margin = opts.margin || defaults.margin;
+			this.padding = opts.padding || defaults.padding;
 
-			Ω.gfx.loadImage(path, function (img) {
+			if (typeof path !== "string") {
+				// Direct init from image
+				this.populate(path, this.flipFlags);
+			} else {
+				Ω.gfx.loadImage(path, function (img) {
 
-				self.populate(img, flipFlags);
+					self.populate(img, self.flipFlags);
 
-			});
+				});
+			}
 
 		},
 
@@ -2124,8 +2158,11 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				this.sheet = this.flipImage(img.canvas || img, flipFlags);
 			}
 
-			this.cellW = img.width / this.w | 0;
-			this.cellH = img.height / this.h | 0;
+			this.cellW = Math.ceil((img.width - this.margin[0]) / (this.w + this.padding[0]));
+			this.cellH = Math.ceil((img.height - this.margin[1]) / (this.h + this.padding[1]));
+
+			console.log((img.width - this.margin[0]),  (this.w + this.padding[0]))
+
 		},
 
 		flipImage: function (img, flags) {
@@ -2202,8 +2239,8 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 			gfx.ctx.drawImage(
 				this.sheet,
-				col * this.w,
-				row * this.h,
+				col * (this.w + this.padding[0]) + this.margin[0],
+				row * (this.h + this.padding[1]) + this.margin[1],
 				w * this.w,
 				h * this.h,
 				x,
