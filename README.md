@@ -1,12 +1,12 @@
 # Ω500: JS Game Library
 
-Ω500 is a simple library for making canvas-based games. It focuses on providing an architecturally simple set of tools for creating games in an old-school, straightforward way: primarily for game jams and rapid prototyping. Check out the online examples: http://mrspeaker.github.io/Omega500/.
+Ω500 is a library for making canvas-based games. It focuses on providing an architecturally simple set of tools for creating games in an old-school, straightforward way: primarily for game jams and rapid prototyping. Check out the online examples: http://mrspeaker.github.io/Omega500/.
 
 ![Platform example](http://www.mrspeaker.net/images/omegaPlat.png)
 
 ## Ω500 Features:
 
-Main game loop. Screens, dialogs, and transitions. Input handling (keys, mouse, touch, iCade). Image loading and display. SpriteSheet animations. Tile and isometric maps. Repeating maps, with parallax. Entity/Map and Entity/Entity collisions. Entity gravity/falling. Generate maps from images. Camera'd map, Tracked camera (with box). Audio load/play. Math/random/timer helpers. Asset preloader/progress. Simple particle controller. Raycast against maps. Path finding. Auto-genereated tile sets for prototyping. Text helpers. Font plotter. Mixin system. State machine helper. "Tiled" map editor level support. Fullscreen API support. Flipped spritesheets and images. Spring algo (for camera & entities). Shake effect.
+Main game loop. Screens, dialogs, and transitions. Input handling (keys, mouse, touch, iCade). Image loading and display. SpriteSheet animations. Tile and isometric maps. Repeating maps, with parallax. Entity/Map and Entity/Entity collisions. Entity velocity/acceleration, gravity/falling. Generate maps from images. Camera'd map, Tracked camera (with box). Audio load/play. Math/random/timer helpers. Asset preloader/progress. Simple particle controller. Raycast against maps. Path finding. Auto-genereated tile sets for prototyping. Text helpers. Font plotter. Mixin system. State machine helper. "Tiled" map editor level support. Fullscreen API support. Flipped spritesheets and images. Spring algo (for camera & entities). Shake effect.
 
 ## Some games using Ω500
 
@@ -34,7 +34,7 @@ Old-school, super-simple architecture: Everything has `tick` and `render(gfx)` m
     .     |
     .  bullets                  // extend Ω.Entity
 
-Every loop the engine calls `tick` on the main game object. This (automatically) calls `tick` on its current screen. The screen (manually) calls `tick` on its children (player, all the baddies in the baddie array, map) and so on. Once the tick is done, the same thing happens with `render`.
+Every loop  the engine calls `tick` on the main game object. This (automatically) calls `tick` on its current screen. The screen (manually) calls `tick` on its children (player, all the baddies in the baddie array, map) and so on. Once the tick is done, the same thing happens with `render`.
 
 That's the rules: if you want something ticked, then `tick` it. If you want something rendered, then `render` it!
 
@@ -457,22 +457,20 @@ Most of the components in Ω500 are in their most basic form - just good enough 
 
 - Fix load from image for retina
 - Add RunStop logo
-- Iso helpers
-- Colourising
-- Repeating image background
+- Tiled image background
 - Random colours
 
 Highest priority and WIP:
 
 - BUG: bad map collision if entity taller/wider than block
 - BUG: tracking camera box moves on zoom
+- move traits to game object, maybe
 
 High priority:
 
 - Partial loader (don't load all resources on init - maybe a "no preload" flag)
 - Serialize/deserialize levels
 - GUI: button
-- Perf: FPS count
 - Perf: Object pooling
 - Multiple screens (as layers)
 - Retina images
@@ -482,8 +480,6 @@ Low prority:
 
 - Gfx: DSP on spritesheets
 - Perf: dirty rectangles
-- Perf: quadtree or map-by-map ents optimisiation
-- Math: Random with seed
 - Math: Swarm/flock algo
 - Maps: block selecting (iso)
 - "Post" effects in webgl (see DIGIBOTS & CO.)

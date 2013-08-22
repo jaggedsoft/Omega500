@@ -26,13 +26,16 @@
 			this.y = y || this.y;
 			this.w = w || this.w;
 			this.h = h || this.h;
+			this.traits = [];
 
 		},
 
 		tick: function () {
 
-			this.traits && this.traits.forEach(function (t) {
-				t.tick.call(this, t);
+			this.traits = this.traits.filter(function (t) {
+
+				return t.tick.call(this, t);
+
 			}, this);
 
 			return !(this.remove);
@@ -40,10 +43,6 @@
 		},
 
 		mixin: function (traits) {
-
-			if (!this.traits) {
-				this.traits = [];
-			}
 
 			traits.forEach(function (t) {
 
@@ -61,6 +60,17 @@
 
 		hitBlocks: function(xBlocks, yBlocks) {},
 
+		moveAdd: function(xo, yo) {
+
+			this.xo = xo;
+			this.yo = yo;
+
+		},
+
+		/*
+			x & y is the amount the entity WANTS to move,
+			if there were no collision with the map.
+		*/
 		move: function (x, y, map) {
 
 			// Temp holder for movement
@@ -76,6 +86,7 @@
 				xBlocks,
 				yBlocks;
 
+			// Apply simple gravity
 			if (this.falling) {
 				y += this.gravity;
 			}
@@ -137,6 +148,8 @@
 				[this.x, this.y + this.h],
 				[this.x + (this.w - 1), this.y + this.h]
 			]);
+
+			this.wasFalling = this.falling;
 			if (yBlocks[0] <= map.walkable && yBlocks[1] <= map.walkable) {
 				this.falling = true;
 			} else {

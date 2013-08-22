@@ -1,5 +1,5 @@
 /*
-	Ω500 Game library
+	Ω500 Game library v0.2.1
 	by Mr Speaker
 */
 var Ω = (function() {
@@ -28,6 +28,8 @@ var Ω = (function() {
 		},
 
 		env: {
+			x: 0,
+			y: 0,
 			w: 0,
 			h: 0
 		},
@@ -444,13 +446,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 		clamp: function(val, min, max) {
 
-			if (val < min) {
-				return min;
-			}
-			if (val > max) {
-				return max;
-			}
-			return val;
+			return Math.max(min, Math.min(max, val));
 
 		},
 
@@ -488,14 +484,14 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 		},
 
-		constrain: function (pos, bounds) {
+		constrain: function (pos, bounds, wrap) {
 
 			var xo = pos[0],
 				yo = pos[1];
-			if (xo < 0) { xo = 0; }
-			if (yo < 0) { yo = 0; }
-			if (xo > bounds.w) { xo = bounds.w; }
-			if (yo > bounds.h) { yo = bounds.h; }
+			if (xo < 0) { xo = wrap ? bounds.w : 0; }
+			if (yo < 0) { yo = wrap ? bounds.h : 0; }
+			if (xo > bounds.w) { xo = wrap ? 0 : bounds.w; }
+			if (yo > bounds.h) { yo = wrap ? 0 : bounds.h; }
 
 			return [xo, yo];
 
@@ -621,7 +617,12 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	};
 
-	Ω.utils.State = function (state) {
+}(Ω));
+(function(Ω) {
+
+	"use strict";
+
+	var State = function (state) {
 
 		this.state = state;
 		this.last = "";
@@ -630,7 +631,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	};
 
-	Ω.utils.State.prototype = {
+	State.prototype = {
 
 		set: function (state) {
 
@@ -674,6 +675,62 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 		}
 
 	};
+
+	Ω.utils = Ω.utils || {};
+	Ω.utils.State = State;
+
+}(Ω));
+(function (Ω) {
+
+	"use strict";
+
+	var Stats = function () {
+
+		var startTime = Date.now(),
+			previous = startTime,
+			fpsCur = 0,
+			fpsMin = 100,
+			fpsMax = 0,
+			ticks = 0;
+
+		return {
+
+			pos: [Ω.env.w - 53, 3],
+
+			start: function () {
+
+				startTime = Date.now();
+
+			},
+
+			fps: function () {
+
+				return [fpsCur, fpsMin, fpsMax];
+
+			},
+
+			stop: function () {
+
+				var now = Date.now();
+
+				ticks++;
+
+				if (now > previous + 1000) {
+					fpsCur = Math.round((ticks * 1000) / (now - previous));
+					fpsMin = Math.min(fpsMin, fpsCur);
+					fpsMax = Math.max(fpsMax, fpsCur);
+
+					previous = now;
+					ticks = 0;
+				}
+
+			}
+		}
+
+	};
+
+	Ω.utils = Ω.utils || {};
+	Ω.utils.Stats = Stats;
 
 }(Ω));
 (function (Ω) {
@@ -1656,7 +1713,6 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				cbName = cbName || "hit",
 				len = entities.length;
 
-
 			for (i = 0; i < len; i++) {
 
 				b = entities[i];
@@ -1664,10 +1720,11 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				ax = a.x + (a.xbb || 0);
 				bx = b.x + (b.xbb || 0);
 
-				if (ax + a.w - 1 > bx &&
-				    ax < bx + b.w - 1 &&
-				    a.y + a.h - 1 > b.y &&
-				    a.y < b.y + b.h - 1) {
+				if (a !== b &&
+					ax + a.w >= bx &&
+				    ax <= bx + b.w &&
+				    a.y + a.h >= b.y &&
+				    a.y <= b.y + b.h) {
 					a[cbName] && a[cbName](b);
 					b[cbName] && b[cbName](a);
 				}
@@ -1697,7 +1754,8 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				for (j = i + 1; j < len; j++) {
 					b = all[j];
 
-					if (a.x + a.w >= b.x &&
+					if (a !== b &&
+						a.x + a.w >= b.x &&
 					    a.x <= b.x + b.w &&
 					    a.y + a.h >= b.y &&
 					    a.y <= b.y + b.h) {
@@ -2002,7 +2060,11 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 		init_trait: function () {},
 
-		tick: function () {}
+		tick: function () {
+
+			return true;
+
+		}
 
 	});
 
@@ -2010,6 +2072,94 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 }(Ω));
 (function (Ω) {
+
+	/*
+
+		Add velocity, acceleration, and friction
+		to an Entity
+
+	*/
+	var Velocity = Ω.Trait.extend({
+
+		makeArgs: function (props) {
+
+			return [props.friction];
+
+		},
+
+		init_trait: function (t, friction) {
+
+			t.velX = 0;
+			t.velY = 0;
+			t.accX = 0;
+			t.accY = 0;
+
+			t.friction = friction || 0.75;
+
+			// Overwrite the Entity base moveAdd
+			this.moveAdd = function (x, y) {
+
+				t.accX += x;
+				t.accY += y;
+
+			}
+
+		},
+
+		tick: function (t) {
+
+			t.velX += t.accX;
+			t.velY += t.accY;
+			t.velX *= t.friction;
+			t.velY *= t.friction;
+
+			if (Math.abs(t.velY) < 1) { t.velY = 0; }
+			if (Math.abs(t.velX) < 1) { t.velX = 0; }
+
+			t.accX = 0;
+			t.accY = 0;
+
+			this.xo += t.velX;
+			this.yo += t.velY;
+
+			return true;
+
+		}
+
+	});
+
+
+	var Gravity = Ω.Trait.extend({
+
+		makeArgs: function (props) {
+
+			return [];
+
+		},
+
+		init_trait: function (t) {
+
+			t.velY = 0;
+			t.accY = 0;
+
+		},
+
+		tick: function (t) {
+
+			if (this.falling) {
+				t.accY += 0.25;
+				t.accY = Ω.utils.clamp(t.accY, 0, 20);
+			} else {
+				t.accY = 0;
+			}
+
+			this.yo += t.accY;
+
+			return true;
+
+		}
+
+	});
 
 	/*
 		Set the entity's `remove` flag after X ticks
@@ -2032,7 +2182,10 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 			if (!this.remove && t.ticks-- === 0) {
 				this.remove = true;
+				console.log("Trait 'remove' executed.");
 			}
+
+			return !(this.remove);
 
 		}
 
@@ -2058,9 +2211,14 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 		tick: function (t) {
 
-			if (t.ticks-- === 0) {
+			if (t.ticks-- <= 0) {
 				t.cb.call(this, t);
+				console.log("Ticker trait expired");
+				return false;
 			}
+
+
+			return true;
 
 		}
 
@@ -2071,6 +2229,8 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 		Bounce a value over a sine curve
 		Defaults to `yo` (to affect the entity's Y movement)
+		but could be applied to any property that needs
+		a sin-y changes
 
 	*/
 	var Sin = Ω.Trait.extend({
@@ -2095,6 +2255,8 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 			this[t.target] += Math.sin(Ω.utils.now() / t.speed) * (t.amp / 10);
 
+			return true;
+
 		}
 
 	});
@@ -2102,7 +2264,9 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 	Ω.traits = {
 		RemoveAfter: RemoveAfter,
 		Ticker: Ticker,
-		Sin: Sin
+		Sin: Sin,
+		Velocity: Velocity,
+		Gravity: Gravity
 	};
 
 }(Ω));
@@ -2160,8 +2324,6 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 			this.cellW = Math.ceil((img.width - this.margin[0]) / (this.w + this.padding[0]));
 			this.cellH = Math.ceil((img.height - this.margin[1]) / (this.h + this.padding[1]));
-
-			console.log((img.width - this.margin[0]),  (this.w + this.padding[0]))
 
 		},
 
@@ -2910,13 +3072,16 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 			this.y = y || this.y;
 			this.w = w || this.w;
 			this.h = h || this.h;
+			this.traits = [];
 
 		},
 
 		tick: function () {
 
-			this.traits && this.traits.forEach(function (t) {
-				t.tick.call(this, t);
+			this.traits = this.traits.filter(function (t) {
+
+				return t.tick.call(this, t);
+
 			}, this);
 
 			return !(this.remove);
@@ -2924,10 +3089,6 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 		},
 
 		mixin: function (traits) {
-
-			if (!this.traits) {
-				this.traits = [];
-			}
 
 			traits.forEach(function (t) {
 
@@ -2945,6 +3106,17 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 		hitBlocks: function(xBlocks, yBlocks) {},
 
+		moveAdd: function(xo, yo) {
+
+			this.xo = xo;
+			this.yo = yo;
+
+		},
+
+		/*
+			x & y is the amount the entity WANTS to move,
+			if there were no collision with the map.
+		*/
 		move: function (x, y, map) {
 
 			// Temp holder for movement
@@ -2960,6 +3132,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				xBlocks,
 				yBlocks;
 
+			// Apply simple gravity
 			if (this.falling) {
 				y += this.gravity;
 			}
@@ -3021,6 +3194,8 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				[this.x, this.y + this.h],
 				[this.x + (this.w - 1), this.y + this.h]
 			]);
+
+			this.wasFalling = this.falling;
 			if (yBlocks[0] <= map.walkable && yBlocks[1] <= map.walkable) {
 				this.falling = true;
 			} else {
@@ -3068,6 +3243,8 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 		_screenFade: 0,
 		dialog: null,
 
+		fps: true,
+
 		init: function (w, h) {
 
 			var ctx = initCanvas(this.canvas, w, h),
@@ -3083,6 +3260,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				self.load();
 				self.run(Date.now());
 			});
+
 			window.addEventListener("load", function () {
 				Ω.pageLoad();
 			}, false);
@@ -3093,6 +3271,8 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 			Ω.utils.now = function () {
 				return self.now();
 			}
+
+			this.stats = Ω.utils.Stats();
 
 		},
 
@@ -3146,6 +3326,8 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 		tick: function (delta) {
 
+			this.stats.start();
+
 			if (this.dialog) {
 				this.dialog.tick(delta);
 			} else {
@@ -3154,6 +3336,8 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				Ω.timers.tick();
 			}
 			Ω.input.tick();
+
+			this.stats.stop();
 
 		},
 
@@ -3170,6 +3354,18 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				gfx.ctx.globalAlpha = 1;
 			}
 			this.dialog && this.dialog.render(gfx);
+
+			if (this.fps) {
+
+				var fps = this.stats.fps();
+				gfx.ctx.fillStyle = "rgba(0,0,0,0.3)";
+				gfx.ctx.fillRect(this.stats.pos[0], this.stats.pos[1], 50, 20);
+
+				gfx.ctx.fillStyle = "#fff";
+				gfx.ctx.font = "6pt monospace";
+				gfx.ctx.fillText(fps[0] + " " + fps[1] + "/" + fps[2], this.stats.pos[0] + 5, this.stats.pos[1] + 13);
+
+			}
 
 		},
 

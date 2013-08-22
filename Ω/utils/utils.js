@@ -102,13 +102,7 @@
 
 		clamp: function(val, min, max) {
 
-			if (val < min) {
-				return min;
-			}
-			if (val > max) {
-				return max;
-			}
-			return val;
+			return Math.max(min, Math.min(max, val));
 
 		},
 
@@ -146,14 +140,14 @@
 
 		},
 
-		constrain: function (pos, bounds) {
+		constrain: function (pos, bounds, wrap) {
 
 			var xo = pos[0],
 				yo = pos[1];
-			if (xo < 0) { xo = 0; }
-			if (yo < 0) { yo = 0; }
-			if (xo > bounds.w) { xo = bounds.w; }
-			if (yo > bounds.h) { yo = bounds.h; }
+			if (xo < 0) { xo = wrap ? bounds.w : 0; }
+			if (yo < 0) { yo = wrap ? bounds.h : 0; }
+			if (xo > bounds.w) { xo = wrap ? 0 : bounds.w; }
+			if (yo > bounds.h) { yo = wrap ? 0 : bounds.h; }
 
 			return [xo, yo];
 
@@ -276,60 +270,6 @@
 			}
 
 		},
-
-	};
-
-	Ω.utils.State = function (state) {
-
-		this.state = state;
-		this.last = "";
-		this.count = -1;
-		this.locked = false;
-
-	};
-
-	Ω.utils.State.prototype = {
-
-		set: function (state) {
-
-			if (this.locked) {
-				return;
-			}
-
-			this.last = this.state;
-			this.state = state;
-			this.count = -1;
-
-		},
-
-		get: function () { return this.state; },
-
-		tick: function () { this.count++; },
-
-		first: function () { return this.count === 0; },
-
-		is: function (state) { return state === this.state; },
-
-		isNot: function (state) { return !this.is(state); },
-
-		isIn: function () {
-
-			var state = this.state,
-				args = Array.prototype.slice.call(arguments);
-
-			return args.some(function (s) {
-
-				return s === state;
-
-			});
-
-		},
-
-		isNotIn: function () {
-
-			return !(this.isIn.apply(this, arguments));
-
-		}
 
 	};
 
