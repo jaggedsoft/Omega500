@@ -1,20 +1,24 @@
 # Ω500: JS Game Library
 
-Ω500 is a library for making canvas-based games. It focuses on providing an architecturally simple set of tools for creating games in an old-school, straightforward way: primarily for game jams and rapid prototyping. Check out the online examples: http://mrspeaker.github.io/Omega500/.
+Ω500 is a library for making canvas-based games. It focuses on providing an architecturally old-school, straightforward set of tools for creating games: primarily for game jams and rapid prototyping. Check out the online examples: http://mrspeaker.github.io/Omega500/.
 
 ![Platform example](http://www.mrspeaker.net/images/omegaPlat.png)
 
 ## Ω500 Features:
 
-Main game loop. Screens, dialogs, and transitions. Input handling (keys, mouse, touch, iCade). Image loading and display. SpriteSheet animations. Tile and isometric maps. Repeating maps, with parallax. Entity/Map and Entity/Entity collisions. Entity velocity/acceleration, gravity/falling. Generate maps from images. Camera'd map, Tracked camera (with box). Audio load/play. Math/random/timer helpers. Asset preloader/progress. Simple particle controller. Raycast against maps. Path finding. Auto-genereated tile sets for prototyping. Text helpers. Font plotter. Mixin system. State machine helper. "Tiled" map editor level support. Fullscreen API support. Flipped spritesheets and images. Spring algo (for camera & entities). Shake effect.
+Main game loop. Screens, dialogs, and transitions. Input handling (keys, mouse, touch, iCade). Image loading and display. SpriteSheet animations. Tile and isometric maps. Repeating maps, with parallax. Entity/Map and Entity/Entity collisions. Velocity acceleration & gravity components. Generate maps from images. Camera'd map, Tracked camera (with box). Audio load/play. Math/random/timer helpers. Asset preloader/progress. Simple particle controller. Raycast against maps. Path finding. Auto-genereated tile sets for prototyping. Text helpers. Font plotter. Mixin system. State machine helper. "Tiled" map editor level support. Fullscreen API support. Flipped spritesheets and images. Spring algo (for camera & entities). Shake effect.
 
 ## Some games using Ω500
 
-[DIGIBOTS & CO](http://www.mrspeaker.net/dev/game/digibots): inside-out Lemmings game where you need to build a path to complete the level. Finalist in the NoFuture contest where it's to become a real-life arcade machine. Neat-o! [Source on GitHub](https://github.com/mrspeaker/digibots). [Zmore](http://mrspeaker.net/dev/ld26): LD#26 entry on the theme "minimalism". Turn light into darkness and escape minimalist captivity [Source on GitHub](https://github.com/mrspeaker/ld26)
+- [DIGIBOTS & CO](http://www.mrspeaker.net/dev/game/digibots): inside-out Lemmings game where you need to build a path to complete the level. Finalist in the NoFuture contest where it's to become a real-life arcade machine. Neat-o! [Source on GitHub](https://github.com/mrspeaker/digibots).
+- [Time Flies Straight](http://mrspeaker.net/dev/ld27): Time Flies Straight. A non-usual game of fractal time - starring Carl Sagan. Made in 48 hours for LD#27 [Source on GitHub](https://github.com/mrspeaker/ld27)
+- [Zmore](http://mrspeaker.net/dev/ld26): LD#26 entry on the theme "minimalism". Turn light into darkness and escape minimalist captivity [Source on GitHub](https://github.com/mrspeaker/ld26).
 
-![DIGIBOTS & CO](http://www.mrspeaker.net/images/digibots-title.jpg)
-![DIGIBOTS & CO](http://www.mrspeaker.net/images/omegaDigibots.jpg)
-![Zmore](http://www.mrspeaker.net/images/omegaZmore.png)
+![DIGIBOTS & CO](http://www.mrspeaker.net/images/digibots-title.jpg).
+![DIGIBOTS & CO](http://www.mrspeaker.net/images/omegaDigibots.jpg).
+![Zmore](http://www.mrspeaker.net/images/omegaZmore.png).
+![Time Flies Straight](http://www.mrspeaker.net/images/tfsCarl.png).
+![Time Flies Straight](http://www.mrspeaker.net/images/tfsHalls.png)
 
 ## Docs
 
@@ -160,19 +164,19 @@ There's also an `init_post` method that will be called after `init`.
 
 ### Input
 
-Bind keys to "actions". The actions are just strings that make sense for your game... "fire", "jump", "decapitate"... whatever... You match the keycode (or a label like "up", "down" - see `Ω.input` for the full list) to the action:
+Bind "actions" to key codes. The actions are just strings that make sense for your game... "fire", "jump", "decapitate"... whatever... You match the keycode (or a aliases like "up", "down" - see `Ω.input` for the full list) to the action:
 
-	Ω.input.bind([
-		["left", "left"],
-		["right", "right"],
-		["up", "up"],
-		["down", "down"],
+    Ω.input.bind("explodeThings", 32); // Bind space bar (code 32) to action "explodeThings"
 
-        ["space", "fire"],
-        ["touch", "fire"],
-        [13, "fire"],
+Can map multiple at once:
 
-	]);
+	Ω.input.bind({
+        "fire": ["space", "touch", 13], // Bind multiple keys to "fire"
+		"left": "left",
+		"right": "right",
+		"up": "up",
+		"down": "down"
+    });
 
 This lets you have multiple keys bind to the same action. In the example above the touch screen, space bar, and the enter key (keycode 13 (which incidentally also has the alias "enter")) all trigger the action "fire".
 
@@ -283,7 +287,7 @@ Doesn't require a spritesheet - it's magically generated (for prototyping)
 
 *Collisions*
 
-In you're entity's tick method, determine the distance you want it to move for the frame and call `move`. If the entity would end up inside a wall, the move function will push the entity back to be snug up against it. The entity can slide along a wall.
+In your entity's tick method, determine the distance you want it to move for the frame and call `move`. If the entity would end up inside a wall, the move function will push the entity back to be snug up against it. The entity can slide along a wall.
 
     entity.move(xAmount, yAmount, map);
 
@@ -453,13 +457,6 @@ Some pre-defined traits
 
 Most of the components in Ω500 are in their most basic form - just good enough for me to use as a base for writing games. As I need features, I add them. This is why you there are some weirder functions - like map ray casting... because I needed them!
 
-**Special "Week before Ludum Dare" TODOs!**
-
-- Fix load from image for retina
-- Add RunStop logo
-- Tiled image background
-- Random colours
-
 Highest priority and WIP:
 
 - BUG: bad map collision if entity taller/wider than block
@@ -468,23 +465,25 @@ Highest priority and WIP:
 
 High priority:
 
-- Partial loader (don't load all resources on init - maybe a "no preload" flag)
-- Serialize/deserialize levels
 - GUI: button
+- Assets: Partial loader (don't load all resources on init - maybe a "no preload" flag)
 - Perf: Object pooling
-- Multiple screens (as layers)
-- Retina images
-- Auto-tiling
+- Screens: Multiple screens (as layers)
+- BUG: Load from image on retina devices
+- Maps: Auto-tiling
+- Maps: Tiled image background
 
 Low prority:
 
 - Gfx: DSP on spritesheets
+- Gfx: "Post" effects in webgl (see DIGIBOTS & CO.)
+- Utils: Serialize/deserialize levels
 - Perf: dirty rectangles
 - Math: Swarm/flock algo
 - Maps: block selecting (iso)
-- "Post" effects in webgl (see DIGIBOTS & CO.)
-- Jams: font "template" images ready to be traced over for game jams
-- Jams: nice default colours (for randoms etc)
+- Jams: Random/classic colour palettes
+- Jams: Not Ω, but - but script conversion from WAV/AIFF to MP3 & OGG.
+- Jams: Not Ω, but - quick set up for grunt.
 
 ## inFAQ:
 
@@ -492,4 +491,4 @@ Q. How do you do that omega symbol thing?
 A. Ω symbol is alt-z, on a mac. I promise to change this stupid name if the lib becomes any good.
 
 Q. When do we get a version bump?
-A. Every time I finish a game with it. Version 1.0 in 8 more games!
+A. Every time I finish a game with it. Version 1.0 in 7 more games!

@@ -74,6 +74,18 @@
 
 		},
 
+		degToRad: function (deg) {
+
+			return deg * Math.PI / 180;
+
+		},
+
+		radToDeg: function (rad) {
+
+			return rad * 180 / Math.PI;
+
+		},
+
 		angleBetween: function (a, b) {
 
 			var dx = a.x - b.x,
@@ -115,6 +127,12 @@
 		lerp: function (start, finish, amount) {
 
 			return amount * this.ratio(start, finish, amount);
+
+		},
+
+		lerpPerc: function (start, finish, perc) {
+
+			return ((finish - start) * perc) + start;
 
 		},
 

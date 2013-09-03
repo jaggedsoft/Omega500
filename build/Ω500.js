@@ -1,5 +1,5 @@
 /*
-	Ω500 Game library v0.2.1
+	Ω500 Game library v0.3.0
 	by Mr Speaker
 */
 var Ω = (function() {
@@ -418,6 +418,18 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 		},
 
+		degToRad: function (deg) {
+
+			return deg * Math.PI / 180;
+
+		},
+
+		radToDeg: function (rad) {
+
+			return rad * 180 / Math.PI;
+
+		},
+
 		angleBetween: function (a, b) {
 
 			var dx = a.x - b.x,
@@ -459,6 +471,12 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 		lerp: function (start, finish, amount) {
 
 			return amount * this.ratio(start, finish, amount);
+
+		},
+
+		lerpPerc: function (start, finish, perc) {
+
+			return ((finish - start) * perc) + start;
 
 		},
 
@@ -737,6 +755,49 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	"use strict";
 
+	var curIdx = -1,
+		palette = [],
+		colors;
+
+	colors = {
+
+		set: function (type) {
+
+			palette.length = 0;
+			for (var i = 0; i < 36; i++) {
+				palette.push("hsl(" + (i * 10 | 0) + ", 50%, 50%)");
+			}
+
+		},
+
+		rnd: function (s, l) {
+
+			s = s === undefined ? 50 : s;
+			l = l === undefined ? 50 : l;
+
+			return "hsl(" + (Math.random() * 360 | 0) + ", " + s + "%, " + l + "%)";
+
+		},
+
+		next: function () {
+
+			curIdx = (curIdx + 1) % palette.length;
+			return palette[curIdx];
+
+		}
+
+	};
+
+	colors.set();
+
+	Ω.utils = Ω.utils || {};
+	Ω.utils.colors = colors;
+
+}(Ω));
+(function (Ω) {
+
+	"use strict";
+
 	var images = {};
 
 	var gfx = {
@@ -975,16 +1036,22 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 			if (keys[input.KEYS.wheelDown]) keyed(input.KEYS.wheelDown, false);
 		},
 
-		bind: function (code, action) {
+		bind: function (action, code) {
 
-			var self = this;
+			var codes;
 
-			if (Array.isArray(code)) {
-				code.forEach(function (k) {
-
-					self.bind(k[0], k[1]);
-
-				});
+			if (typeof action === "object") {
+				codes = action;
+				for (action in codes) {
+					var key = codes[action];
+					if (Array.isArray(key)) {
+						key.forEach(function (k) {
+							this.bind(action, k);
+						}, this);
+					} else {
+						this.bind(action, key);
+					}
+				}
 				return;
 			}
 
@@ -2003,11 +2070,17 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 		killKey: "escape",
 		time: 0,
 
-		init: function (key) {
+		init: function (key, cb) {
+
+			if (typeof key === "function") {
+				cb = key;
+				key = null;
+			}
 
 			if (key) {
 				this.killKey = key;
 			}
+			this.cb = cb;
 
 		},
 
@@ -2025,6 +2098,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 		done: function () {
 
 			game.clearDialog();
+			this.cb && this.cb();
 
 		},
 
@@ -2096,8 +2170,8 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 			t.friction = friction || 0.75;
 
-			// Overwrite the Entity base moveAdd
-			this.moveAdd = function (x, y) {
+			// Overwrite the Entity base moveBy
+			this.moveBy = function (x, y) {
 
 				t.accX += x;
 				t.accY += y;
@@ -2112,9 +2186,6 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 			t.velY += t.accY;
 			t.velX *= t.friction;
 			t.velY *= t.friction;
-
-			if (Math.abs(t.velY) < 1) { t.velY = 0; }
-			if (Math.abs(t.velX) < 1) { t.velX = 0; }
 
 			t.accX = 0;
 			t.accY = 0;
@@ -2988,57 +3059,194 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	"use strict";
 
-	/* WIP: map for doing Wolf3D style games */
+	var Strip,
+		RayCastMap;
 
-	var RayCastMap = Ω.Map.extend({
+	RayCastMap = Ω.Map.extend({
 
-		init: function (sheet, data, entity) {
+		strips: null,
 
-			this.entity = entity;
+		init: function (sheet, data, stripWidth, fov) {
 
 			this._super(sheet, data);
 
+			this.strips = [];
+			this.setStripWidth(stripWidth || 2);
+			this.setFOV(fov || 60);
+
 		},
 
-		castRays: function (gfx) {
+		setStripWidth: function (stripWidth) {
 
-			var idx = 0,
-				i,
-				rayPos,
-				rayDist,
-				rayAngle,
-				fov = 60 * Math.PI / 180,
-				viewDistance = (gfx.w / 2) / Math.tan((fov / 2)),
-				numRays = 15,
-				w = 16;
+			this.stripWidth = stripWidth;
+			this.numRays = Math.ceil(Ω.env.w / stripWidth);
 
-			/*for (var i = 0; i < numRays; i++) {
-				rayPos = (-numRays / 2 + i) * w;
-				rayDist = Math.sqrt(rayPos * rayPos + viewDistance * viewDistance);
-				rayAngle = Math.asin(rayPos / rayDist);
-
-				this.castRay(gfx, Math.PI + rayAngle, idx++);
-			}*/
-			var p = this.entity;
-			for (var i = 0; i < Math.PI * 2; i+= 0.2) {
-				var hit = Ω.rays.cast(i, p.x + p.w / 2, p.y + p.h / 2, this);
-
-				if (hit) {
-					Ω.rays.draw(gfx, p.x + p.w / 2, p.y + p.h / 2, hit.x, hit.y, this);
+			if (this.numRays !== this.strips.length) {
+				this.strips.length = 0;
+				for (var i = 0; i < this.numRays; i++) {
+					this.strips.push(new Strip(this.sheet));
 				}
 			}
 
 		},
 
-		render: function (gfx, camera) {
+		setFOV: function (fov) {
 
-			// TODO: raycast texture draw
-			this._super(gfx, camera);
+			var fovRad = Ω.utils.deg2rad(fov);
+			this.viewDistance = (Ω.env.w / 2) / Math.tan((fovRad / 2));
 
-			this.castRays(gfx);
+		},
+
+		tick: function (entities, player) {
+
+			// Turns the entities into an entity map for use in raycasting visibility tests
+			var entityMap = entities.reduce(function (acc, n) {
+
+				n.visible = false;
+				acc[n.y / 16 | 0] = acc[n.y / 16 | 0] || {};
+				acc[n.y / 16 | 0][n.x / 16 | 0] = {
+					ent: n
+				};
+				return acc;
+
+			}, {})
+
+			this.castRays(entityMap, player);
+
+		},
+
+		castRays: function (entities, p) {
+
+			var i,
+				strip,
+				rayPos,
+				rayDist,
+				rayAngle,
+				hit,
+				hitDist,
+				viewDistance = this.viewDistance,
+				shaded = false;
+
+  			for (i = 0; i < this.numRays; i++) {
+
+  				strip = this.strips[i];
+  				strip.depth = 100;
+
+    			// where on the screen does ray go through?
+    			rayPos = (-this.numRays / 2 + i) * this.stripWidth;
+    			rayDist = Math.sqrt(rayPos * rayPos + viewDistance * viewDistance);
+				rayAngle = Math.asin(rayPos / rayDist);
+    			hit = Ω.rays.cast(p.rotation + rayAngle, p.x + p.w / 2, p.y + p.h / 2, this, entities);
+
+				if (hit) {
+
+					hitDist = Math.sqrt(hit.dist);
+					hitDist = hitDist * Math.cos(rayAngle); // Fix fish-eye
+
+					var height = viewDistance / hitDist | 0,
+						width = (viewDistance / hitDist | 0) * this.stripWidth,
+						top = (Ω.env.h - height) / 2,
+						texX = null,
+						texY = null;
+
+					texX = ((hit.cell - 1) * 16) +  Math.floor(hit.textureX * 16);
+					texY = hit.shaded ? 32 : 0;
+
+					// Set the ray strip
+					strip.set(
+						i * this.stripWidth,
+						top,
+						this.stripWidth,
+						height,
+						hit.dist,
+						texX,
+						texY
+					);
+				}
+
+  			}
+
+		},
+
+		render: function (gfx, entities, player) {
+
+			var c = gfx.ctx;
+
+			this.strips.concat(entities.filter(function(e) {
+
+				// Filter out not-close baddies
+				if (e.radius && e.dist > 30) {
+					e.visible = false;
+				}
+				return e.visible;
+
+			})).sort(function (a, b) {
+
+				return a.dist > b.dist ? -1 : 1;
+
+			}).forEach(function (g) {
+
+				g.render(gfx);
+
+			});
 
 		}
 
+	});
+
+	// Strip represents one vertical strip of the ray caster
+	var Strip = Ω.Class.extend({
+
+		depth: 0,
+
+		x: 0,
+		y: 0,
+		h: 0,
+		w: 0,
+
+		init: function (map) {
+
+			this.map = map;
+
+		},
+
+		set: function (x, y, w, h, depth, texX, texY) {
+
+			this.x = x;
+			this.y = y;
+			this.w = w;
+			this.h = h;
+			this.dist = depth;
+
+			this.texX = texX;
+			this.texY = texY;
+
+		},
+
+		render: function (gfx) {
+
+			var c = gfx.ctx;
+
+			if (this.texX === null) {
+
+				c.fillStyle = "#777";
+				c.fillRect(this.x, this.y, this.w, this.h);
+				return;
+
+			}
+
+			gfx.ctx.drawImage(
+				this.map.sheet,
+				this.texX,
+				this.texY,
+				1,
+				32,
+				this.x,
+				this.y,
+				this.w,
+				this.h);
+
+		}
 	});
 
 	Ω.RayCastMap = RayCastMap;
@@ -3072,7 +3280,10 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 			this.y = y || this.y;
 			this.w = w || this.w;
 			this.h = h || this.h;
+
+			var t = this.traits || [];
 			this.traits = [];
+			this.mixin(t);
 
 		},
 
@@ -3106,7 +3317,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 		hitBlocks: function(xBlocks, yBlocks) {},
 
-		moveAdd: function(xo, yo) {
+		moveBy: function(xo, yo) {
 
 			this.xo = xo;
 			this.yo = yo;
