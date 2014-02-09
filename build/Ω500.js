@@ -63,7 +63,7 @@ var Ω = (function() {
 					});
 				}
 
-			}
+			};
 		},
 
 		pageLoad: function () {
@@ -274,7 +274,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				return {
 					x: xHit,
 					y: yHit
-				}
+				};
 			} else {
 				return null;
 			}
@@ -296,11 +296,11 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 		}
 
-	}
+	};
 
 	Ω.rays = rays;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -314,7 +314,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 			this.time = time;
 			if (!done) {
 				done = cb;
-				cb = null
+				cb = null;
 			}
 			this.max = time;
 			this.cb = cb;
@@ -341,7 +341,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 		return new Timer(time, cb, done);
 	};
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -374,7 +374,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 				this.seed = (this.seed * 9301 + 49297) % 233280;
 
-				return (this.seed / 233280) * (max - min) + min;
+				return ((this.seed / 233280) * (max - min) + min) | 0;
 			}
 		},
 
@@ -491,7 +491,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 			var j, i;
 
-			for(j = -radius; j <= radius; j++) {
+			for (j = -radius; j <= radius; j++) {
 				for(i = -radius; i <= radius; i++) {
 					if(onlyOuterRing && (Math.abs(i) !== radius && Math.abs(j) !== radius)){
 						continue;
@@ -540,11 +540,11 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 			scripts.forEach(function (path) {
 
 				var script = document.createElement('script'),
-					qs = env.desktop ? "?" + new Date().getTime() : "";
+					qs = window.env.desktop ? "?" + new Date().getTime() : "";
 
 				script.src = "scripts/" + path + ".js" + qs;
 				script.onload = function () {
-					resources.toLoadLoaded++;
+					// FIXME: where did this come from?: resources.toLoadLoaded++;
 					if (loaded++ === scripts.length - 1) {
 						cb && cb();
 					}
@@ -635,7 +635,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	};
 
-}(Ω));
+}(window.Ω));
 (function(Ω) {
 
 	"use strict";
@@ -697,7 +697,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 	Ω.utils = Ω.utils || {};
 	Ω.utils.State = State;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -743,25 +743,38 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				}
 
 			}
-		}
+		};
 
 	};
 
 	Ω.utils = Ω.utils || {};
 	Ω.utils.Stats = Stats;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
 
 	var curIdx = -1,
 		palette = [],
+		palettes = {
+			"c64": ["#000000","#FFFFFF","#68372B","#70A4B2","#6F3D86","#588D43","#352879","#B8C76F","#6F4F25","#433900","#9A6759","#444444","#6C6C6C","#9AD284","#6C5EB5","#959595"]
+		},
 		colors;
 
 	colors = {
 
 		set: function (type) {
+
+			if (Array.isArray(type)) {
+				palette = type.slice(0);
+				return;
+			}
+
+			if (palettes[type]) {
+				palette = palettes[type].slice(0);
+				return;
+			}
 
 			palette.length = 0;
 			for (var i = 0; i < 36; i++) {
@@ -770,7 +783,15 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 		},
 
-		rnd: function (s, l) {
+		get: function (idx) {
+			return palette[Ω.utils.clamp(idx % palette.length, 0, palette.length - 1)];
+		},
+
+		rnd: function () {
+			return palette[Math.random() * palette.length | 0];
+		},
+
+		rndHSL: function (s, l) {
 
 			s = s === undefined ? 50 : s;
 			l = l === undefined ? 50 : l;
@@ -793,7 +814,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 	Ω.utils = Ω.utils || {};
 	Ω.utils.colors = colors;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -846,7 +867,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 					cb && cb(procImage || image);
 					resolve();
 
-				}
+				};
 
 			image._loaded = false;
 			image.src = path;
@@ -858,13 +879,6 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 			}, false);
 			images[path + (flipFlags ? ":" + flipFlags : "")] = image;
-
-		},
-
-		dspImage: function (img, dspFunc) {
-
-			// TODO: run func once per pixel
-			return img;
 
 		},
 
@@ -957,7 +971,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.gfx = gfx;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -1022,6 +1036,13 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 		},
 
 		reset: function () {
+
+			var key;
+
+			for(key in keys) {
+				keys[key].isDown = false;
+				keys[key].wasDown = false;
+			}
 
 		},
 
@@ -1109,7 +1130,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				keyed(code, false);
 			});
 		}
-	}
+	};
 
 	function keyed(code, isDown) {
 
@@ -1299,7 +1320,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.input = input;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -1338,7 +1359,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.Image = Image;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -1374,13 +1395,14 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 				// Fixme: crazyies in firefox... fires twice?
 				audio.addEventListener("canplaythrough", onload, false);
-				audio.addEventListener("progress", function() {
+				var prog = function() {
 					// FIXME: no canplaythrough on mobile safari...
 					// Does it even play audio? Don't do sounds, or only handle
 					// progress event for this.
 					onload.call(this);
-					audio.removeEventListener("progress");
-				}, false);
+					audio.removeEventListener("progress", prog);
+				};
+				audio.addEventListener("progress", prog, false);
 
 				audio.addEventListener("error", function () {
 					console.error("Error loading audio resource:", audio.src);
@@ -1403,10 +1425,10 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 		rewind: function () {
 			this.audio.pause();
 			try{
-	        	this.audio.currentTime = 0;
-	    	} catch(err){
-	        	//console.log(err);
-	    	}
+				this.audio.currentTime = 0;
+			} catch(err){
+				//console.log(err);
+			}
 
 		},
 
@@ -1457,7 +1479,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.Sound = Sound;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
     "use strict";
@@ -1602,11 +1624,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 		render: function (gfx, renderables) {
 
 			var c = gfx.ctx,
-				self = this,
-				minX = this.x,
-				minY = this.y,
-				maxX = this.x + this.w,
-				maxY = this.y + this.h;
+				self = this;
 
 			c.save();
 			c.scale(this.zoom, this.zoom);
@@ -1651,7 +1669,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.Camera = Camera;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -1695,7 +1713,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 			if (this.x > 0) {
 				if (this.bounds && this.x + this.w / this.zoom > this.bounds[0]) {
 					this.x = this.bounds[0] - this.w / this.zoom;
-				};
+				}
 			}
 			if (this.y < 0) {
 				this.y = 0;
@@ -1703,7 +1721,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 			if (this.y > 0) {
 				if (this.bounds && this.y + this.h / this.zoom > this.bounds[1]) {
 					this.y = this.bounds[1] - this.h / this.zoom;
-				};
+				}
 			}
 
 		},
@@ -1713,9 +1731,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 			var center = Ω.utils.center(this, this.zoom),
 				e = this.entity,
 				xr = this.xRange,
-				yr = this.yRange,
-				newX,
-				newY;
+				yr = this.yRange;
 
 			if(e.x < center.x - xr) {
 				this.x = e.x - (this.w / this.zoom / 2) + xr;
@@ -1762,7 +1778,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.TrackingCamera = TrackingCamera;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -1772,13 +1788,13 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 		checkCollision: function (entity, entities, cbName) {
 
 			var i,
-				j,
 				a = entity,
 				b,
 				ax,
 				bx,
-				cbName = cbName || "hit",
 				len = entities.length;
+
+			cbName = cbName || "hit";
 
 			for (i = 0; i < len; i++) {
 
@@ -1805,7 +1821,6 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				j,
 				a,
 				b,
-				cbName = cbName || "hit",
 				all = entities.reduce(function (ac, e) {
 					if (Array.isArray(e)) {
 						return ac.concat(e);
@@ -1815,6 +1830,8 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 				}, []),
 				len = all.length;
+
+			cbName = cbName || "hit";
 
 			for (i = 0; i < len - 1; i++) {
 				a = all[i];
@@ -1837,7 +1854,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.Physics = Physics;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -1949,7 +1966,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.Particle = Particle;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -1968,7 +1985,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 		},
 
-		render: function (gfx, x, y) {
+		render: function (gfx) {
 
 			gfx.ctx.translate(Math.random() * 8 | 0, Math.random() * 4 | 0);
 
@@ -1978,7 +1995,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.Shake = Shake;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -2027,7 +2044,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	window.Spring = Spring;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -2060,7 +2077,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.Screen = Screen;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -2097,7 +2114,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 		done: function () {
 
-			game.clearDialog();
+			window.game.clearDialog();
 			this.cb && this.cb();
 
 		},
@@ -2115,7 +2132,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.Dialog = Dialog;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -2144,8 +2161,10 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.Trait = Trait;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
+
+	"use strict";
 
 	/*
 
@@ -2176,7 +2195,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				t.accX += x;
 				t.accY += y;
 
-			}
+			};
 
 		},
 
@@ -2340,7 +2359,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 		Gravity: Gravity
 	};
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -2365,7 +2384,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 			if (!isNaN(opts)) {
 				opts = {
 					flipFlags: opts
-				}
+				};
 			}
 			opts = opts || {};
 
@@ -2486,7 +2505,191 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.SpriteSheet = SpriteSheet;
 
-}(Ω));
+}(window.Ω));
+(function (Ω) {
+
+    "use strict";
+
+    var SpriteAtlas = Ω.Class.extend({
+
+        images: null,
+        path:  "",
+        plist: null,
+        csv: null,
+
+        init: function (type, data) {
+            this.images = {};
+
+            switch (type) {
+                case "plist":
+                    this.initPList(data);
+                    break;
+                case "csv":
+                    this.initCSV(data);
+                    break;
+            }
+        },
+
+        initPList: function (plist) {
+            var self = this;
+
+            this.path = plist.split("/").slice(0, -1).join("/") + "/";
+
+            var resolve = Ω.preload(plist);
+            Ω.utils.ajax(plist, function (xhr) {
+                var parser = new DOMParser(),
+                    xmlText = xhr.responseText,
+                    xmlDoc,
+                    root;
+
+                xmlDoc = parser.parseFromString(xmlText, "application/xml");
+                root = xmlDoc.getElementsByTagName("dict")[0];
+
+                self.plist = self.parsePList(root);
+                self.loadImages(self.plist.images);
+                resolve();
+            });
+        },
+
+        initCSV: function (path) {
+            var self = this;
+
+            var resolve = Ω.preload(path);
+            Ω.utils.ajax(path + ".txt", function (xhr) {
+                Ω.gfx.loadImage(path + ".png", function (img) {
+                    self.images.main = img;
+                    self.parseCSV(xhr.responseText, img);
+                });
+                resolve();
+            });
+        },
+
+        loadImages: function (imageData) {
+            var self = this;
+            imageData.forEach(function (imgData) {
+                Ω.gfx.loadImage(self.path + imgData.path, function (img) {
+                    self.images[imgData.path] = img;
+                });
+            });
+        },
+
+        parseCSV: function (csv, img) {
+            var out = this.csv = {};
+            csv.split("\n").forEach(function (line) {
+                var parts = line.split(" "),
+                    w = img.width,
+                    h = img.height;
+                out[parts[0]] = {
+                    name: parts[0],
+                    w: Math.round(parseInt(parts[1], 10)),
+                    h: Math.round(parseInt(parts[2], 10)),
+                    x: Math.round(parts[3] * w),
+                    y: Math.round(parts[4] * h)
+                };
+            });
+        },
+
+        parsePList: function (nodes) {
+            var kids = nodes.children,
+                key,
+                value;
+
+            var out = {},
+                arrOut;
+
+            for (var i = 0; i < kids.length; i += 2) {
+                key = kids[i];
+                value = kids[i + 1];
+                switch (value.nodeName) {
+                    case "dict":
+                        value = this.parsePList(value);
+                        break;
+                    case "string":
+                        value = value.textContent;
+                        break;
+                    case "integer":
+                        value = value.textContent;
+                        break;
+                    case "array":
+                        arrOut = [];
+                        for(var j = 0; j < value.children.length; j++) {
+                            arrOut.push(this.parsePList(value.children[j]));
+                        }
+                        value = arrOut;
+                        break;
+                    case "true":
+                        value = true;
+                        break;
+                    case "false":
+                        value = false;
+                        break;
+                    default:
+                        console.error("unhandled plist type:", value.nodeName);
+                        break;
+
+                }
+                out[key.textContent] = value;
+            }
+            return out;
+
+        },
+
+        render: function (gfx, name, x, y) {
+
+            if (this.plist) {
+                this.renderPList(gfx, x, y);
+                return;
+            }
+
+            var img = this.images.main,
+                imgData = this.csv[name];
+
+            if (!imgData) {
+                return;
+            }
+
+            gfx.ctx.drawImage(
+                img,
+                imgData.x,
+                imgData.y,
+                imgData.w,
+                imgData.h,
+                x,
+                y,
+                imgData.w,
+                imgData.h);
+
+        },
+
+        renderPList: function (gfx, x, y) {
+            var img = this.images["sprites.1.png"];
+
+            var si = ((Date.now() / 300 | 0) % 10) + 1;
+
+            var subimg = this.plist.images[1].subimages[si].textureRect;
+            var t = subimg.replace("{{", "").replace("}}","").replace("},{", ",").split(",");
+
+            var x1 = t[0];
+            var x2 = t[1];
+            var w = t[2];
+            var h = t[3];
+            gfx.ctx.drawImage(
+                img,
+                x1,
+                x2,
+                w,
+                h,
+                x,
+                y,
+                w,
+                h);
+        }
+
+    });
+
+    Ω.SpriteAtlas = SpriteAtlas;
+
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -2516,10 +2719,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 			msg = msg.toString();
 
-			var w = this.sheet.w,
-				h = this.sheet.h,
-				cellW = this.sheet.cellW,
-				cellH = this.sheet.cellH;
+			var cellW = this.sheet.cellW;
 
 			for (var i = 0; i < msg.length; i++) {
 
@@ -2545,7 +2745,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.Font = Font;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -2636,7 +2836,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.Anims = Anims;
 
-}(Ω));(function (Ω) {
+}(window.Ω));(function (Ω) {
 
 	"use strict";
 
@@ -2672,7 +2872,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 					this.cb && this.cb();
 				};
 				this.changed = true;
-			};
+			}
 
 		},
 
@@ -2699,7 +2899,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.Anim = Anim;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -2742,7 +2942,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 					w: gfx.w,
 					h: gfx.h,
 					zoom: 1
-				}
+				};
 			}
 
 			var tw = this.sheet.w,
@@ -2855,11 +3055,10 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				autoColIdx = 0;
 
 			function canvToCells(canvas) {
-
 				var ctx = canvas.getContext("2d"),
 					pix = ctx.webkitGetImageDataHD ?
 						ctx.webkitGetImageDataHD(0, 0, canvas.width, canvas.height).data :
-						ctx.webkitGetImageData(0, 0, canvas.width, canvas.height).data,
+						ctx.getImageData(0, 0, canvas.width, canvas.height).data,
 					pixOff,
 					cells = [],
 					i,
@@ -2890,7 +3089,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 								if (!col) {
 									// This colour is not a tile. It must be an entity...
 									if (entities[key]) {
-										entities[key].push([i, j])
+										entities[key].push([i, j]);
 									} else {
 										entities[key] = [[i, j]];
 									}
@@ -2943,7 +3142,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.Map = Map;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -2952,42 +3151,57 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	var DebugMap = Ω.Map.extend({
 
-		init: function (tileW, tileH, xTiles, yTiles, cells, walkable) {
+		init: function (tileW, tileH, xTiles, yTiles, cells, walkable, seed) {
 
-			var ctx = Ω.gfx.createCanvas(tileW * xTiles, tileH * yTiles),
+			var ctx = this.ctx = Ω.gfx.createCanvas(tileW * xTiles, tileH * yTiles),
 				data = Ω.gfx.ctx.createImageData(tileW * xTiles,tileH * yTiles),
 				pix = data.data,
-				numPix = data.width * data.height;
+				numPix = data.width * data.height,
+				oldSeed,
+				off;
 
-			var off = Math.random() * 255 | 0;
+			this.seed = seed || (Math.random() * 10000 | 0);
+
+			oldSeed = Ω.utils.rnd.seed;
+			Ω.utils.rnd.seed = this.seed;
+			off = Ω.utils.rnd.rand(255);
 
 			for (var i = 0; i < numPix; i++) {
 				var row = i / data.width | 0,
 					col = ((i / tileW) | 0) % data.width % xTiles,
-					noise = Math.random() < 0.3 ? (Math.random() * 30) : 0,
+					noise = Ω.utils.rnd.rand(100) < 30 ? (Ω.utils.rnd.rand(30)) : 0,
 					color = ((row / tileH) + 1 + (col * 3) + off + (noise / 10)) | 0;
 
-
 				// Remove the edges, for some roundiness.
-				if (i % tileW == 0 && (i / data.width | 0) % tileH == 0) { color = 0; }
-				if ((i + 1) % tileW == 0 && (i / data.width | 0) % tileH == 0) { color = 0; }
-				if (i % tileW == 0 && ((i / data.width | 0) + 1) % tileH == 0) { color = 0; }
-				if ((i + 1) % tileW == 0 && ((i / data.width | 0) + 1) % tileH == 0) { color = 0; }
+				if (i % tileW === 0 && (i / data.width | 0) % tileH === 0) { color = 0; }
+				if ((i + 1) % tileW === 0 && (i / data.width | 0) % tileH === 0) { color = 0; }
+				if (i % tileW === 0 && ((i / data.width | 0) + 1) % tileH === 0) { color = 0; }
+				if ((i + 1) % tileW === 0 && ((i / data.width | 0) + 1) % tileH === 0) { color = 0; }
 
 				pix[i * 4] = (color * 50) % 255 + noise;
 				pix[i * 4 + 1] = (color * 240) % 255 + noise;
 				pix[i * 4 + 2] = (color * 80) % 255 + noise;
-				pix[i * 4 + 3] = 255;
+				pix[i * 4 + 3] = color === 0 ? 0 : 255;
 			}
 
-			ctx.putImageData(data, 0, 0);
+			Ω.utils.rnd.seed = oldSeed;
 
-			document.body.appendChild(ctx.canvas);
+			ctx.putImageData(data, 0, 0);
 
 			this._super(
 				new Ω.SpriteSheet(ctx.canvas, tileW, tileH),
 				cells,
 				walkable);
+
+		},
+
+		dump: function () {
+
+			console.log("seed:", this.seed);
+
+			var img = new Image();
+			img.src = this.ctx.canvas.toDataURL();
+			document.body.appendChild(img);
 
 		}
 
@@ -2995,7 +3209,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.DebugMap = DebugMap;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -3054,7 +3268,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.IsoMap = IsoMap;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -3109,7 +3323,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				};
 				return acc;
 
-			}, {})
+			}, {});
 
 			this.castRays(entityMap, player);
 
@@ -3124,19 +3338,18 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				rayAngle,
 				hit,
 				hitDist,
-				viewDistance = this.viewDistance,
-				shaded = false;
+				viewDistance = this.viewDistance;
 
-  			for (i = 0; i < this.numRays; i++) {
+			for (i = 0; i < this.numRays; i++) {
 
-  				strip = this.strips[i];
-  				strip.depth = 100;
+				strip = this.strips[i];
+				strip.depth = 100;
 
-    			// where on the screen does ray go through?
-    			rayPos = (-this.numRays / 2 + i) * this.stripWidth;
-    			rayDist = Math.sqrt(rayPos * rayPos + viewDistance * viewDistance);
+				// where on the screen does ray go through?
+				rayPos = (-this.numRays / 2 + i) * this.stripWidth;
+				rayDist = Math.sqrt(rayPos * rayPos + viewDistance * viewDistance);
 				rayAngle = Math.asin(rayPos / rayDist);
-    			hit = Ω.rays.cast(p.rotation + rayAngle, p.x + p.w / 2, p.y + p.h / 2, this, entities);
+				hit = Ω.rays.cast(p.rotation + rayAngle, p.x + p.w / 2, p.y + p.h / 2, this, entities);
 
 				if (hit) {
 
@@ -3153,6 +3366,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 					texY = hit.shaded ? 32 : 0;
 
 					// Set the ray strip
+					// TODO: should be "this.stripWidth", or "width"?
 					strip.set(
 						i * this.stripWidth,
 						top,
@@ -3164,7 +3378,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 					);
 				}
 
-  			}
+			}
 
 		},
 
@@ -3195,7 +3409,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 	});
 
 	// Strip represents one vertical strip of the ray caster
-	var Strip = Ω.Class.extend({
+	Strip = Ω.Class.extend({
 
 		depth: 0,
 
@@ -3251,7 +3465,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.RayCastMap = RayCastMap;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -3433,7 +3647,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.Entity = Entity;
 
-}(Ω));
+}(window.Ω));
 (function (Ω) {
 
 	"use strict";
@@ -3476,12 +3690,12 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				Ω.pageLoad();
 			}, false);
 
-            this.running = true;
+			this.running = true;
 
-            // Use the game time, rather than Date.now()
+			// Use the game time, rather than Date.now()
 			Ω.utils.now = function () {
 				return self.now();
-			}
+			};
 
 			this.stats = Ω.utils.Stats();
 
@@ -3503,33 +3717,33 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 		run: function () {
 
-            var self = this,
-            	now = Date.now(),
-                frameTime = Math.min((now - this.currentTime) / 1000, this.preset_dt),
-                c;
+			var self = this,
+				now = Date.now(),
+				frameTime = Math.min((now - this.currentTime) / 1000, this.preset_dt),
+				c;
 
-            this.currentTime = now;
-            this.accumulator += frameTime;
+			this.currentTime = now;
+			this.accumulator += frameTime;
 
-            if (this.running) {
-                c = 0;
-                while (this.accumulator >= this.preset_dt) {
-                    c++;
-                    this.tick(this.preset_dt);
-                    this.accumulator -= this.preset_dt;
-                }
-                if (c > 1) {
-                    console.log("ran " + c + " ticks");
-                }
+			if (this.running) {
+				c = 0;
+				while (this.accumulator >= this.preset_dt) {
+					c++;
+					this.tick(this.preset_dt);
+					this.accumulator -= this.preset_dt;
+				}
+				if (c > 1) {
+					console.log("ran " + c + " ticks");
+				}
 
-                this.render(Ω.gfx);
-            }
+				this.render(Ω.gfx);
+			}
 
-            window.requestAnimationFrame(function () {
+			window.requestAnimationFrame(function () {
 
-                self.run(Date.now());
+				self.run(Date.now());
 
-            });
+			});
 
 		},
 
@@ -3559,15 +3773,14 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 			}
 
 			this.screen.render(gfx);
-			if (this.screenFade > 0) {
-				gfx.ctx.globalAlpha = this.screenFade;
+			if (this._screenFade > 0) {
+				gfx.ctx.globalAlpha = this._screenFade;
 				this.screenPrev.render(gfx);
 				gfx.ctx.globalAlpha = 1;
 			}
 			this.dialog && this.dialog.render(gfx);
 
 			if (this.fps) {
-
 				var fps = this.stats.fps();
 				gfx.ctx.fillStyle = "rgba(0,0,0,0.3)";
 				gfx.ctx.fillRect(this.stats.pos[0], this.stats.pos[1], 50, 20);
@@ -3575,7 +3788,6 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 				gfx.ctx.fillStyle = "#fff";
 				gfx.ctx.font = "6pt monospace";
 				gfx.ctx.fillText(fps[0] + " " + fps[1] + "/" + fps[2], this.stats.pos[0] + 5, this.stats.pos[1] + 13);
-
 			}
 
 		},
@@ -3588,16 +3800,16 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 			this.screen = screen;
 
 			if (this.screenPrev) {
-			    this.screenFade = 1;
-			    Ω.timer(10, function (ratio) {
+				this._screenFade = 1;
+				Ω.timer(10, function (ratio) {
 
-			        self.screenFade = 1 - ratio;
+					self._screenFade = 1 - ratio;
 
-			    }, function () {
+				}, function () {
 
-			        self.screenFade = 0;
+					self._screenFade = 0;
 
-			    });
+				});
 			}
 
 		},
@@ -3627,10 +3839,9 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 			newCanvas,
 			ctx;
 
-		if (selCanvas == null) {
+		if (selCanvas === null) {
 			console.error("Canvas DOM container not found:", canvasSelector);
-			canvasSelector = "body";
-			selCanvas = document.querySelector(canvasSelector);
+			selCanvas = document.querySelector("body");
 		}
 
 		if (selCanvas.nodeName.toUpperCase() === "CANVAS") {
@@ -3664,4 +3875,4 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequ
 
 	Ω.Game = Game;
 
-}(Ω));
+}(window.Ω));

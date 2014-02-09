@@ -191,6 +191,10 @@ To force an action to be released (even if user still holding down button):
 
     Ω.input.release("left")
 
+Reset all keys (stops stuck keys when transitioning screens):
+
+    Ω.input.reset();
+
 
 ### Image
 
@@ -460,7 +464,9 @@ Most of the components in Ω500 are in their most basic form - just good enough 
 Highest priority and WIP:
 
 - BUG: bad map collision if entity taller/wider than block
-- BUG: tracking camera box moves on zoom
+- BUG: bad map collision with velocity/gravity when jammed hard left into block (jump straight up and get stuck on upper block)
+- BUG: tracking camera box moves on zoom.
+- BUG: tracking camera box jumps when map is not as wide as screen, but needs to scroll.
 - move traits to game object, maybe
 
 High priority:

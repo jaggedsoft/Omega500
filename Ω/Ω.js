@@ -59,7 +59,7 @@ var Ω = (function() {
 					});
 				}
 
-			}
+			};
 		},
 
 		pageLoad: function () {
