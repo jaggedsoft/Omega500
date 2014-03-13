@@ -4,7 +4,7 @@
 
 header=$(cat << EOF
 /*
-	Ω500 Game library v0.3.0
+	Ω500 Game library v0.5.0
 	by Mr Speaker
 */
 EOF
@@ -19,6 +19,7 @@ cat - \
 ../Ω/utils/rays.js \
 ../Ω/utils/Timer.js \
 ../Ω/utils/utils.js \
+../Ω/utils/math.js \
 ../Ω/utils/State.js \
 ../Ω/utils/Stats.js \
 ../Ω/utils/colors.js \
@@ -32,6 +33,7 @@ cat - \
 ../Ω/physics/Physics.js \
 ../Ω/effects/Particle.js \
 ../Ω/effects/Shake.js \
+../Ω/effects/Flash.js \
 ../Ω/effects/Spring.js \
 ../Ω/screens/Screen.js \
 ../Ω/screens/Dialog.js \
@@ -50,3 +52,6 @@ cat - \
 ../Ω/Game.js \
 \
 > Ω500.js
+
+# Copy the library to the template project
+cp Ω500.js ../ex/template/lib
